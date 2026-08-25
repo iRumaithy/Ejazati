@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<defs>
+  <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#102852"/>
+    <stop offset="1" stop-color="#061225"/>
+  </linearGradient>
+  <linearGradient id="sea" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#19d6d0"/>
+    <stop offset="1" stop-color="#48aaf7"/>
+  </linearGradient>
+  <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+    <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#000" flood-opacity=".32"/>
+  </filter>
+</defs>
+<rect width="512" height="512" rx="118" fill="url(#bg)"/>
+<g filter="url(#shadow)">
+  <rect x="92" y="102" width="328" height="312" rx="48" fill="#f7fbff"/>
+  <rect x="92" y="102" width="328" height="86" rx="48" fill="#0e2244"/>
+  <rect x="92" y="154" width="328" height="34" fill="#0e2244"/>
+  <rect x="149" y="74" width="28" height="74" rx="14" fill="#f7fbff"/>
+  <rect x="335" y="74" width="28" height="74" rx="14" fill="#f7fbff"/>
+</g>
+
+<!-- sky -->
+<rect x="116" y="210" width="280" height="178" rx="28" fill="#dff6ff"/>
+<!-- sun -->
+<circle cx="335" cy="257" r="28" fill="#ffd557"/>
+<!-- sea -->
+<path d="M116 323 C175 287 224 291 278 324 C323 351 354 343 396 322 L396 388 L116 388 Z" fill="url(#sea)"/>
+<!-- sand -->
+<path d="M116 354 C166 331 210 337 248 359 C288 382 340 381 396 354 L396 388 L116 388 Z" fill="#ffe6a6"/>
+
+<!-- palm -->
+<path d="M226 348 C220 315 222 283 234 248" stroke="#0d766f" stroke-width="18" stroke-linecap="round" fill="none"/>
+<path d="M234 252 C207 226 181 223 157 238 C185 241 205 252 224 270" fill="#13bca8"/>
+<path d="M237 250 C252 218 278 205 309 211 C283 223 264 240 249 264" fill="#13bca8"/>
+<path d="M236 250 C224 218 205 199 177 193 C199 211 217 231 229 258" fill="#23d4bd"/>
+<path d="M238 250 C258 230 281 228 302 242 C279 243 258 252 245 268" fill="#23d4bd"/>
+</svg>
