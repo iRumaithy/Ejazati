@@ -1,8 +1,9 @@
-const CACHE="ejazati-v1.1.1";
+const CACHE="ejazati-v1.2.0";
 const SHELL=[
   "./index.html",
   "./manifest.webmanifest",
   "./auth-hotfix.js",
+  "./ui-v1.2.0.js",
   "./assets/icons/icon-192.png",
   "./assets/icons/icon-512.png",
   "./assets/icons/apple-touch-icon.png"
@@ -36,9 +37,7 @@ self.addEventListener("fetch",event=>{
       try{
         const response=await fetch(event.request);
         const copy=response.clone();
-        event.waitUntil(
-          caches.open(CACHE).then(c=>c.put("./index.html",copy))
-        );
+        event.waitUntil(caches.open(CACHE).then(c=>c.put("./index.html",copy)));
         return response;
       }catch(e){
         return (await caches.match("./index.html")) || Response.error();

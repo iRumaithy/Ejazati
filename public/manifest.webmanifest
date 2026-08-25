@@ -1,14 +1,14 @@
 {
   "name": "إجازاتي",
   "short_name": "إجازاتي",
-  "description": "إدارة ومزامنة إجازات الدوام ورصيد الإجازات",
+  "description": "إدارة رصيد الإجازات والإجازات الرسمية في دولة الإمارات",
   "lang": "ar",
   "dir": "rtl",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#07101f",
-  "theme_color": "#0b1630",
+  "background_color": "#050b16",
+  "theme_color": "#081426",
   "icons": [
     {
       "src": "./assets/icons/icon-192.png",
