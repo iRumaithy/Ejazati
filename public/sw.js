@@ -1,10 +1,11 @@
-const CACHE="ejazati-v1.2.1";
+const CACHE="ejazati-v1.2.2";
 const SHELL=[
   "./index.html",
   "./manifest.webmanifest",
   "./auth-hotfix.js",
   "./ui-v1.2.0.js",
   "./ui-v1.2.1.js",
+  "./ui-v1.2.2.js",
   "./assets/icons/icon-192.png",
   "./assets/icons/icon-512.png",
   "./assets/icons/apple-touch-icon.png"
