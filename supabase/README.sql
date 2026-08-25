@@ -1,0 +1,14 @@
+-- Already applied to the connected Supabase project on 2026-08-25.
+-- Kept here so the GitHub repository documents the backend schema.
+-- Tables:
+-- public.ejazati_profiles
+-- public.ejazati_leave_settings
+-- public.ejazati_leaves
+-- public.ejazati_holidays
+-- public.ejazati_app_versions
+-- public.ejazati_user_version_state
+-- public.ejazati_backup_history
+--
+-- RLS is enabled on every Ejazati table.
+-- The public RPC ejazati_claim_owner() is a deliberate one-time bootstrap:
+-- the first authenticated Ejazati account becomes owner, and all later calls return false.
