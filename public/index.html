@@ -1,0 +1,357 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b1630">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="إجازاتي">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./assets/icons/apple-touch-icon.png">
+<link rel="icon" href="./assets/icons/icon-32.png">
+<title>إجازاتي</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.4"></script>
+<style>
+:root{--bg:#07101f;--bg2:#0b1730;--card:#101d38;--card2:#142443;--text:#f7f9fd;--muted:#96a8c4;--line:rgba(255,255,255,.09);--cyan:#52c7ff;--mint:#6fe1c2;--yellow:#ffd66b;--red:#ff7f91;--purple:#b99cff;--shadow:0 18px 46px rgba(0,0,0,.25)}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;min-height:100vh;color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Tahoma,Arial,sans-serif;background:radial-gradient(circle at 86% 3%,rgba(82,199,255,.14),transparent 32%),radial-gradient(circle at 6% 30%,rgba(111,225,194,.08),transparent 28%),linear-gradient(180deg,var(--bg),#09142a 60%,#07101f)}
+button,input,select,textarea{font:inherit}button{cursor:pointer}.hidden{display:none!important}
+.auth{min-height:100vh;display:grid;place-items:center;padding:24px 16px}.authCard{width:min(440px,100%);padding:26px 20px;border-radius:30px;background:linear-gradient(180deg,rgba(18,35,66,.98),rgba(11,23,48,.98));border:1px solid var(--line);box-shadow:var(--shadow)}.logo{width:88px;height:88px;border-radius:25px;display:block;margin:0 auto 14px;box-shadow:0 14px 35px rgba(0,0,0,.3)}.auth h1{text-align:center;margin:0;font-size:28px}.authLead{text-align:center;color:var(--muted);font-size:13px;margin:8px 0 22px;line-height:1.7}
+.field{margin-bottom:12px}.field label{display:block;font-size:12px;color:#cad7e9;margin-bottom:7px}.field input,.field select,.field textarea{width:100%;padding:13px 14px;color:var(--text);background:#08152d;border:1px solid var(--line);border-radius:15px;outline:none}.field textarea{min-height:90px;resize:vertical}.field input:focus,.field select:focus,.field textarea:focus{border-color:rgba(82,199,255,.55)}.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.primary,.ghost,.danger,.mini{border:1px solid var(--line);border-radius:15px;color:var(--text);padding:11px 14px;background:rgba(255,255,255,.055)}.primary{border:0;background:linear-gradient(135deg,#1aa8ed,#3bc8ac);color:#061426;font-weight:900}.danger{color:#ffd6dc;background:rgba(255,127,145,.09);border-color:rgba(255,127,145,.25)}.mini{padding:7px 9px;border-radius:11px;font-size:11px}.full{width:100%}.linkBtn{border:0;background:none;color:var(--cyan);padding:8px}.authSwitch{display:flex;justify-content:center;gap:10px;margin-top:10px;font-size:12px}.msg{font-size:12px;line-height:1.7;padding:10px 12px;border-radius:13px;margin-bottom:12px;background:rgba(82,199,255,.08);color:#d9efff}
+.app{max-width:600px;margin:auto;padding:calc(17px + env(safe-area-inset-top)) 15px calc(104px + env(safe-area-inset-bottom))}.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}.topBrand{display:flex;align-items:center;gap:11px}.topBrand img{width:44px;height:44px;border-radius:14px}.top h1{font-size:22px;margin:0 0 2px}.top p{margin:0;color:var(--muted);font-size:11px}.avatar{width:43px;height:43px;border-radius:15px;border:1px solid var(--line);background:rgba(255,255,255,.055);color:#fff}
+.hero{padding:21px;border-radius:28px;background:linear-gradient(145deg,#142a50,#0d1e3e);border:1px solid var(--line);box-shadow:var(--shadow)}.heroTop{display:flex;justify-content:space-between;align-items:center;gap:14px}.hero small{color:#d2deef}.balance{font-size:44px;font-weight:950;letter-spacing:-1px;margin-top:5px}.balance em{font-style:normal;font-size:15px;color:var(--muted);font-weight:600}.ring{width:104px;height:104px;border-radius:50%;display:grid;place-items:center;position:relative;background:conic-gradient(var(--cyan) 0deg,rgba(255,255,255,.08) 0)}.ring:before{content:"";position:absolute;inset:11px;border-radius:50%;background:#132646}.ring b{position:relative;font-size:18px}.heroStats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:17px}.stat{background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:16px;padding:10px}.stat b{font-size:17px;display:block}.stat span{font-size:10px;color:var(--muted)}
+.section{margin-top:19px}.sectionHead{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px}.sectionHead h3{font-size:16px;margin:0}.sectionHead span{font-size:11px;color:var(--muted)}.card{padding:15px;background:linear-gradient(180deg,rgba(17,33,62,.97),rgba(13,27,52,.97));border:1px solid var(--line);border-radius:22px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.kpi{min-height:110px;padding:15px;background:linear-gradient(180deg,rgba(17,33,62,.97),rgba(13,27,52,.97));border:1px solid var(--line);border-radius:21px}.kpi .ico{font-size:21px}.kpi b{font-size:21px;display:block;margin:10px 0 4px}.kpi small{color:var(--muted)}
+.leaveItem{display:grid;grid-template-columns:50px 1fr auto;gap:11px;align-items:center;padding:13px 0;border-bottom:1px solid var(--line)}.leaveItem:last-child{border-bottom:0}.dateBox{text-align:center;background:rgba(82,199,255,.08);border-radius:14px;padding:7px 2px}.dateBox b{font-size:17px;display:block}.dateBox span{font-size:9px;color:var(--muted)}.leaveItem h4{font-size:13px;margin:0 0 4px}.leaveItem p{font-size:10px;margin:0;color:var(--muted);line-height:1.6}.badge{font-size:10px;border:1px solid var(--line);padding:5px 7px;border-radius:999px;white-space:nowrap}.future{color:#ffe3a4;background:rgba(255,214,107,.08)}.done{color:#b8ffe8;background:rgba(111,225,194,.07)}
+.toolbar{display:flex;gap:7px;overflow:auto;padding-bottom:2px}.toolbar>*{white-space:nowrap}.notice{padding:13px;border-radius:17px;line-height:1.7;font-size:12px;border:1px solid rgba(255,214,107,.18);background:rgba(255,214,107,.07);color:#ffeabd}.okNotice{border-color:rgba(111,225,194,.18);background:rgba(111,225,194,.07);color:#caffef}.page{display:none}.page.active{display:block}
+.nav{position:fixed;z-index:30;bottom:0;left:50%;transform:translateX(-50%);width:min(600px,100%);padding:9px 10px calc(9px + env(safe-area-inset-bottom));display:grid;grid-template-columns:repeat(5,1fr);background:rgba(5,14,29,.9);backdrop-filter:blur(20px);border-top:1px solid var(--line)}.nav button{border:0;background:none;color:var(--muted);font-size:9px;padding:5px}.nav button.active{color:#fff}.nav .ni{display:block;font-size:19px;margin-bottom:2px}.nav .plus{width:50px;height:50px;border-radius:17px;margin:-24px auto 0;background:linear-gradient(135deg,#1aa8ed,#3bc8ac);color:#061426;font-size:30px;box-shadow:0 10px 24px rgba(45,197,195,.25)}
+.calendarHead{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}.calGrid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;text-align:center}.calLabel,.calDay{font-size:10px;padding:8px 2px;border-radius:10px}.calLabel{color:var(--muted)}.calDay{min-height:37px;background:rgba(255,255,255,.035)}.calDay.weekend{background:rgba(255,255,255,.075)}.calDay.holiday{outline:1px solid rgba(111,225,194,.5);background:rgba(111,225,194,.09)}.calDay.annual{outline:1px solid rgba(82,199,255,.55);background:rgba(82,199,255,.10)}.calDay.sick{outline:1px solid rgba(185,156,255,.55);background:rgba(185,156,255,.09)}.calDay.empty{opacity:0}
+.listRow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 0;border-bottom:1px solid var(--line)}.listRow:last-child{border-bottom:0}.listRow b{font-size:12px}.listRow small{color:var(--muted);font-size:10px}.adminTag{font-size:9px;padding:4px 7px;border-radius:999px;background:rgba(255,214,107,.1);color:#ffe7ab}.userDisabled{opacity:.55}.release{padding:12px 0;border-bottom:1px solid var(--line)}.release:last-child{border-bottom:0}.release h4{margin:0 0 5px;font-size:13px}.release p{margin:0 0 8px;color:var(--muted);font-size:10px;line-height:1.6}
+.modal{position:fixed;z-index:60;inset:0;display:none;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.7);backdrop-filter:blur(7px)}.modal.open{display:flex}.sheet{width:min(600px,100%);max-height:92vh;overflow:auto;border-radius:28px 28px 0 0;background:#0a1730;border:1px solid var(--line);padding:17px 15px calc(25px + env(safe-area-inset-bottom))}.sheetHead{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}.sheetHead h3{margin:0}.calc{font-size:12px;line-height:1.8;padding:12px;border-radius:15px;background:rgba(82,199,255,.07);border:1px solid rgba(82,199,255,.14)}.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.updateBar{position:fixed;z-index:80;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom));width:min(570px,calc(100% - 22px));padding:13px;border-radius:18px;background:#f5f9ff;color:#07101f;box-shadow:0 15px 50px rgba(0,0,0,.35)}.updateBar b{display:block;font-size:13px}.updateBar p{font-size:10px;margin:4px 0 9px;color:#43506a}.updateBar button{color:#07101f;border-color:rgba(7,16,31,.14)}.toast{position:fixed;z-index:99;top:calc(15px + env(safe-area-inset-top));left:50%;transform:translate(-50%,-12px);opacity:0;transition:.2s;background:#f7fbff;color:#07101f;border-radius:13px;padding:10px 13px;font-size:11px;font-weight:800}.toast.show{opacity:1;transform:translate(-50%,0)}.version{text-align:center;color:#5e718f;font-size:10px;margin:22px 0 4px}
+@media(min-width:560px){.authCard{padding:30px}}
+</style>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+
+<section class="auth" id="authView">
+  <div class="authCard">
+    <img class="logo" src="./assets/icons/icon-192.png" alt="إجازاتي">
+    <h1>إجازاتي</h1>
+    <p class="authLead">رصيدك وإجازاتك في مكان واحد، ومتزامنة على جميع أجهزتك.</p>
+    <div id="authMsg" class="msg hidden"></div>
+
+    <form id="loginForm" onsubmit="signIn(event)">
+      <div class="field"><label>البريد الإلكتروني</label><input id="loginEmail" type="email" autocomplete="email" required></div>
+      <div class="field"><label>كلمة المرور</label><input id="loginPassword" type="password" autocomplete="current-password" minlength="6" required></div>
+      <button class="primary full" type="submit">تسجيل الدخول</button>
+      <div class="authSwitch"><button type="button" class="linkBtn" onclick="showSignup()">إنشاء حساب جديد</button><button type="button" class="linkBtn" onclick="forgotPassword()">نسيت كلمة المرور؟</button></div>
+    </form>
+
+    <form id="signupForm" class="hidden" onsubmit="signUp(event)">
+      <div class="field"><label>الاسم</label><input id="signupName" autocomplete="name" required></div>
+      <div class="field"><label>البريد الإلكتروني</label><input id="signupEmail" type="email" autocomplete="email" required></div>
+      <div class="field"><label>كلمة المرور</label><input id="signupPassword" type="password" autocomplete="new-password" minlength="8" required></div>
+      <button class="primary full" type="submit">إنشاء الحساب</button>
+      <div class="authSwitch"><button type="button" class="linkBtn" onclick="showLogin()">لدي حساب بالفعل</button></div>
+    </form>
+
+    <form id="recoveryForm" class="hidden" onsubmit="setNewPassword(event)">
+      <div class="field"><label>كلمة المرور الجديدة</label><input id="newPassword" type="password" minlength="8" required></div>
+      <button class="primary full" type="submit">حفظ كلمة المرور</button>
+    </form>
+  </div>
+</section>
+
+<div class="app hidden" id="appView">
+  <header class="top">
+    <div class="topBrand"><img src="./assets/icons/icon-96.png"><div><h1>إجازاتي</h1><p id="helloText"></p></div></div>
+    <button class="avatar" onclick="goPage('settingsPage')">⚙️</button>
+  </header>
+
+  <main>
+    <section class="page active" id="homePage">
+      <div class="hero">
+        <div class="heroTop">
+          <div><small>المتاح فعليًا</small><div class="balance"><span id="available">0</span> <em>يوم</em></div><small id="balanceHint"></small></div>
+          <div class="ring" id="ring"><b id="ringPct">0%</b></div>
+        </div>
+        <div class="heroStats">
+          <div class="stat"><b id="used">0</b><span>مستخدم</span></div>
+          <div class="stat"><b id="reserved">0</b><span>محجوز</span></div>
+          <div class="stat"><b id="total">0</b><span>الرصيد الكلي</span></div>
+        </div>
+      </div>
+      <div id="carryNotice" class="notice hidden" style="margin-top:11px"></div>
+      <div class="section"><div class="sectionHead"><h3>نظرة سريعة</h3><span>السنة الحالية</span></div>
+        <div class="grid2">
+          <div class="kpi"><span class="ico">🗓️</span><b id="nextLeave">—</b><small>الإجازة القادمة</small></div>
+          <div class="kpi"><span class="ico">🌴</span><b id="leaveCount">0</b><small>عدد الإجازات</small></div>
+          <div class="kpi"><span class="ico">🏆</span><b id="longest">—</b><small>أطول إجازة</small></div>
+          <div class="kpi"><span class="ico">☁️</span><b>متزامن</b><small>حفظ سحابي</small></div>
+        </div>
+      </div>
+      <div class="section"><div class="sectionHead"><h3>آخر الإجازات</h3><span id="homeCount"></span></div><div class="card" id="homeLeaves"></div></div>
+    </section>
+
+    <section class="page" id="calendarPage">
+      <div class="sectionHead"><h3>التقويم</h3><span>الإجازات والعطل</span></div>
+      <div class="card">
+        <div class="calendarHead"><button class="ghost mini" onclick="shiftMonth(1)">‹</button><b id="monthTitle"></b><button class="ghost mini" onclick="shiftMonth(-1)">›</button></div>
+        <div class="calGrid" id="calGrid"></div>
+      </div>
+    </section>
+
+    <section class="page" id="leavesPage">
+      <div class="sectionHead"><h3>الإجازات</h3><span>محفوظة في حسابك</span></div>
+      <div class="toolbar" style="margin-bottom:9px"><button class="ghost mini" onclick="setFilter('all')">الكل</button><button class="ghost mini" onclick="setFilter('future')">القادمة</button><button class="ghost mini" onclick="setFilter('past')">السابقة</button></div>
+      <div class="card" id="allLeaves"></div>
+    </section>
+
+    <section class="page" id="adminPage">
+      <div id="adminOnly">
+        <div class="sectionHead"><h3>👑 لوحة المالك</h3><span>Owner</span></div>
+        <div class="grid2">
+          <div class="kpi"><span class="ico">👥</span><b id="userCount">0</b><small>المستخدمون</small></div>
+          <div class="kpi"><span class="ico">🚀</span><b id="latestVersion">—</b><small>آخر إصدار</small></div>
+        </div>
+        <div class="section"><div class="sectionHead"><h3>إدارة المستخدمين</h3><span>تفعيل / تعطيل</span></div><div class="card" id="usersList"></div></div>
+        <div class="section"><div class="sectionHead"><h3>الإصدارات</h3><span>Beta → Production</span></div>
+          <div class="card">
+            <div id="releasesList"></div><hr style="border:0;border-top:1px solid var(--line);margin:14px 0">
+            <div class="row2"><div class="field"><label>رقم الإصدار</label><input id="releaseVersion" placeholder="1.2.0"></div><div class="field"><label>القناة</label><select id="releaseChannel"><option value="beta">Beta</option><option value="production">Production</option></select></div></div>
+            <div class="field"><label>ملاحظات الإصدار</label><textarea id="releaseNotes" placeholder="ما الجديد في هذا الإصدار؟"></textarea></div>
+            <button class="primary full" onclick="createRelease()">إضافة إصدار للتجربة</button>
+          </div>
+        </div>
+        <div class="section"><div class="notice">🧪 استخدم رابط Cloudflare Preview لتجربة الإصدار أولًا. بعد الاعتماد ودمج فرع <b>beta</b> إلى <b>main</b> ينشر Cloudflare النسخة الإنتاجية. جدول الإصدارات هنا يسجل دورة الاعتماد داخل «إجازاتي».</div></div>
+      </div>
+    </section>
+
+    <section class="page" id="settingsPage">
+      <div class="sectionHead"><h3>الإعدادات</h3><span id="accountRole"></span></div>
+      <div class="card">
+        <div class="field"><label>الاسم</label><input id="displayName"></div>
+        <div class="field"><label>الرصيد السنوي</label><input id="baseBalance" type="number" min="0"></div>
+        <div class="field"><label>الرصيد المرحّل</label><input id="carryBalance" type="number" min="0"></div>
+        <div class="field"><label>انتهاء المرحّل</label><input id="carryExpiry" type="date"></div>
+        <div class="field"><label>العطلة الأسبوعية</label><select id="weekendDays"><option value="6,0">السبت والأحد</option><option value="5,6">الجمعة والسبت</option><option value="4,5">الخميس والجمعة</option></select></div>
+        <button class="primary full" onclick="saveSettings()">حفظ الإعدادات</button>
+      </div>
+      <div class="section"><div class="sectionHead"><h3>العطل الرسمية</h3><span>خاصة بحسابك</span></div>
+        <div class="card"><div id="holidayList"></div><hr style="border:0;border-top:1px solid var(--line);margin:14px 0">
+          <div class="row2"><div class="field"><label>التاريخ</label><input id="holidayDate" type="date"></div><div class="field"><label>الاسم</label><input id="holidayName" placeholder="مثال: عيد الاتحاد"></div></div>
+          <button class="ghost full" onclick="addHoliday()">+ إضافة عطلة</button>
+        </div>
+      </div>
+      <div class="section"><div class="toolbar">
+        <button class="ghost" onclick="exportBackup('manual')">⬇️ نسخة احتياطية</button>
+        <button class="ghost" onclick="document.getElementById('backupFile').click()">⬆️ استعادة</button>
+        <input id="backupFile" type="file" accept=".json,application/json" hidden onchange="importBackup(event)">
+      </div></div>
+      <div class="section"><button class="danger full" onclick="signOut()">تسجيل الخروج</button></div>
+      <div class="version">إجازاتي · v1.1.0 · Cloud Sync</div>
+    </section>
+  </main>
+</div>
+
+<nav class="nav hidden" id="nav">
+  <button data-page="homePage" class="active" onclick="goPage('homePage',this)"><span class="ni">⌂</span>الرئيسية</button>
+  <button data-page="calendarPage" onclick="goPage('calendarPage',this)"><span class="ni">▦</span>التقويم</button>
+  <button onclick="openLeave()"><span class="plus">+</span></button>
+  <button data-page="leavesPage" onclick="goPage('leavesPage',this)"><span class="ni">☰</span>الإجازات</button>
+  <button data-page="settingsPage" id="lastNav" onclick="goPage('settingsPage',this)"><span class="ni">⚙</span>الإعدادات</button>
+</nav>
+
+<div class="updateBar hidden" id="updateBar">
+  <b>✨ تحديث جديد جاهز</b><p>يمكنك أخذ نسخة احتياطية ثم تفعيل النسخة الجديدة على هذا الجهاز.</p>
+  <div class="toolbar"><button class="primary mini" onclick="applyWaitingUpdate()">تحديث الآن</button><button class="ghost mini" onclick="exportBackup('pre_update')">نسخة احتياطية</button><button class="ghost mini" onclick="hideUpdate()">لاحقًا</button></div>
+</div>
+
+<div class="modal" id="leaveModal" onclick="if(event.target===this)closeLeave()">
+  <div class="sheet">
+    <div class="sheetHead"><h3 id="leaveModalTitle">إجازة جديدة</h3><button class="ghost mini" onclick="closeLeave()">✕</button></div>
+    <input type="hidden" id="leaveId">
+    <div class="field"><label>نوع الإجازة</label><select id="leaveType" onchange="autoDeduct()"><option value="annual">سنوية</option><option value="sick">مرضية</option><option value="emergency">اضطرارية</option><option value="unpaid">بدون راتب</option><option value="mission">مهمة / دورة</option><option value="other">أخرى</option></select></div>
+    <div class="field"><label>العنوان / الملاحظة</label><input id="leaveTitle"></div>
+    <div class="row2"><div class="field"><label>من</label><input id="leaveFrom" type="date" onchange="updateCalc()"></div><div class="field"><label>إلى</label><input id="leaveTo" type="date" onchange="updateCalc()"></div></div>
+    <label style="display:flex;gap:8px;align-items:center;font-size:12px;color:#cad7e9"><input id="leaveDeduct" type="checkbox" checked onchange="updateCalc()"> خصم أيام العمل من الرصيد</label>
+    <div class="calc" id="leaveCalc" style="margin-top:12px"></div>
+    <div class="actions"><button class="primary" onclick="saveLeave()">حفظ</button><button class="ghost" onclick="closeLeave()">إلغاء</button></div>
+    <button class="danger full hidden" id="deleteLeave" style="margin-top:8px" onclick="removeLeave()">حذف الإجازة</button>
+  </div>
+</div>
+
+<script>
+const APP_VERSION='1.1.0';
+const SUPABASE_URL="https://itcbahydyqhlybofcyuh.supabase.co";
+const SUPABASE_KEY="sb_publishable_qL-6DKVkAc3XWJ7JH-p2_A_-8myYRgp";
+const client=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+const MONTHS=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+const TYPES={annual:{name:'سنوية',emoji:'🌴',cls:'annual'},sick:{name:'مرضية',emoji:'🩺',cls:'sick'},emergency:{name:'اضطرارية',emoji:'⚡',cls:'annual'},unpaid:{name:'بدون راتب',emoji:'◌',cls:''},mission:{name:'مهمة / دورة',emoji:'🎓',cls:''},other:{name:'أخرى',emoji:'•',cls:''}};
+const TODAY=new Date();TODAY.setHours(0,0,0,0);
+let session=null, profile=null, settings=null, leaves=[], holidays=[], users=[], releases=[];
+let filter='all', calDate=new Date(TODAY.getFullYear(),TODAY.getMonth(),1), waitingWorker=null;
+
+const $=id=>document.getElementById(id);
+function toast(t){const e=$('toast');e.textContent=t;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),1800)}
+function esc(s=''){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function ymd(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function pd(s){const [y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)}
+function fmt(s){if(!s)return'—';const d=pd(s);return d.getDate()+' '+MONTHS[d.getMonth()]+' '+d.getFullYear()}
+function daySpan(a,b){return Math.round((pd(b)-pd(a))/86400000)+1}
+function isWeekend(d){return (settings?.weekend_days||[6,0]).includes(d.getDay())}
+function isHoliday(d){return holidays.some(h=>h.holiday_date===ymd(d))}
+function isWorkday(d){return !isWeekend(d)&&!isHoliday(d)}
+function workdays(a,b){let n=0,d=pd(a),e=pd(b);while(d<=e){if(isWorkday(d))n++;d.setDate(d.getDate()+1)}return n}
+function deduction(l){return l.deduct_from_balance?workdays(l.start_date,l.end_date):0}
+
+function authMessage(t,ok=false){$('authMsg').textContent=t;$('authMsg').classList.remove('hidden');$('authMsg').style.background=ok?'rgba(111,225,194,.08)':'rgba(82,199,255,.08)'}
+function showLogin(){$('signupForm').classList.add('hidden');$('recoveryForm').classList.add('hidden');$('loginForm').classList.remove('hidden')}
+function showSignup(){$('loginForm').classList.add('hidden');$('recoveryForm').classList.add('hidden');$('signupForm').classList.remove('hidden')}
+async function signIn(e){e.preventDefault();const {error}=await client.auth.signInWithPassword({email:$('loginEmail').value.trim(),password:$('loginPassword').value});if(error)authMessage(error.message);}
+async function signUp(e){e.preventDefault();const {data,error}=await client.auth.signUp({email:$('signupEmail').value.trim(),password:$('signupPassword').value,options:{data:{display_name:$('signupName').value.trim()}}});if(error)return authMessage(error.message);if(!data.session){authMessage('تم إنشاء الحساب. افتح رسالة التأكيد في بريدك ثم سجّل الدخول.',true);showLogin();}}
+async function forgotPassword(){const email=$('loginEmail').value.trim()||prompt('اكتب بريدك الإلكتروني');if(!email)return;const {error}=await client.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});authMessage(error?error.message:'أرسلنا رابط إعادة تعيين كلمة المرور إلى بريدك.',!error)}
+async function setNewPassword(e){e.preventDefault();const {error}=await client.auth.updateUser({password:$('newPassword').value});if(error)return authMessage(error.message);toast('تم تغيير كلمة المرور');showApp();}
+async function signOut(){await client.auth.signOut();location.reload()}
+
+client.auth.onAuthStateChange(async (event,newSession)=>{session=newSession;if(event==='PASSWORD_RECOVERY'){$('loginForm').classList.add('hidden');$('signupForm').classList.add('hidden');$('recoveryForm').classList.remove('hidden');$('authView').classList.remove('hidden');$('appView').classList.add('hidden');return}if(newSession)await enterApp();else showAuth();});
+
+function showAuth(){$('authView').classList.remove('hidden');$('appView').classList.add('hidden');$('nav').classList.add('hidden')}
+function showApp(){$('authView').classList.add('hidden');$('appView').classList.remove('hidden');$('nav').classList.remove('hidden')}
+async function enterApp(){
+ showApp();
+ const uid=session.user.id;
+ let p=await client.from('ejazati_profiles').select('*').eq('id',uid).single();
+ if(p.error){toast('تعذر تحميل الحساب');console.error(p.error);return}
+ profile=p.data;
+ if(profile.role==='user'){
+   const claim=await client.rpc('ejazati_claim_owner');
+   if(claim.data===true){p=await client.from('ejazati_profiles').select('*').eq('id',uid).single();profile=p.data;toast('تم تفعيل هذا الحساب كمالك لإجازاتي 👑')}
+ }
+ if(profile.status==='disabled'){alert('هذا الحساب معطّل من مالك المنصة.');await client.auth.signOut();return}
+ await loadData();
+}
+
+async function loadData(){
+ const uid=session.user.id;
+ const [s,l,h,v]=await Promise.all([
+   client.from('ejazati_leave_settings').select('*').eq('user_id',uid).single(),
+   client.from('ejazati_leaves').select('*').eq('user_id',uid).order('start_date',{ascending:false}),
+   client.from('ejazati_holidays').select('*').eq('user_id',uid).order('holiday_date'),
+   client.from('ejazati_app_versions').select('*').order('created_at',{ascending:false})
+ ]);
+ settings=s.data||{user_id:uid,base_balance:30,carried_balance:0,weekend_days:[6,0]};
+ leaves=l.data||[];holidays=h.data||[];releases=v.data||[];
+ if(profile.role==='owner')await loadAdmin();
+ render();
+}
+
+async function loadAdmin(){
+ const [u,r]=await Promise.all([
+   client.from('ejazati_profiles').select('*').order('created_at',{ascending:false}),
+   client.from('ejazati_app_versions').select('*').order('created_at',{ascending:false})
+ ]);
+ users=u.data||[];releases=r.data||[];
+}
+
+function totals(){
+ const total=Number(settings?.base_balance||0)+Number(settings?.carried_balance||0);let used=0,reserved=0;
+ leaves.forEach(l=>{if(!l.deduct_from_balance)return;const s=pd(l.start_date),e=pd(l.end_date);
+ if(e<TODAY)used+=deduction(l);else if(s>TODAY)reserved+=deduction(l);else{let d=new Date(s);while(d<=e){if(isWorkday(d)){if(d<TODAY)used++;else reserved++}d.setDate(d.getDate()+1)}}
+ });
+ return{total,used,reserved,available:Math.max(0,total-used-reserved)}
+}
+function render(){
+ const t=totals(),pct=t.total?Math.min(100,Math.round((t.used+t.reserved)/t.total*100)):0;
+ $('available').textContent=t.available;$('used').textContent=t.used;$('reserved').textContent=t.reserved;$('total').textContent=t.total;$('ringPct').textContent=pct+'%';$('ring').style.background=`conic-gradient(var(--cyan) ${pct*3.6}deg,rgba(255,255,255,.08) 0deg)`;
+ $('balanceHint').textContent=`من أصل ${t.total} يوم بعد الحجوزات`;$('helloText').textContent='مرحبًا، '+(profile.display_name||profile.email||'');
+ $('leaveCount').textContent=leaves.length;let longest=0;leaves.forEach(l=>longest=Math.max(longest,daySpan(l.start_date,l.end_date)));$('longest').textContent=longest?longest+' يوم':'—';
+ const up=leaves.filter(l=>pd(l.end_date)>=TODAY).sort((a,b)=>pd(a.start_date)-pd(b.start_date))[0];$('nextLeave').textContent=up?pd(up.start_date).getDate()+' '+MONTHS[pd(up.start_date).getMonth()]:'لا يوجد';
+ $('homeCount').textContent=leaves.length+' مسجلة';$('homeLeaves').innerHTML=leaves.slice(0,4).map(leaveHTML).join('')||'<div style="padding:24px;text-align:center;color:var(--muted);font-size:12px">لا توجد إجازات بعد.</div>';
+ renderLeaves();renderCalendar();renderSettings();renderCarry();renderAdmin();renderReleaseUpdate();
+}
+function renderCarry(){const n=Number(settings?.carried_balance||0),exp=settings?.carry_expiry;if(n&&exp){const diff=Math.ceil((pd(exp)-TODAY)/86400000);if(diff>=0&&diff<=90){$('carryNotice').innerHTML=`⚠️ لديك <b>${n} أيام مرحّلة</b> تنتهي في ${fmt(exp)}.`;$('carryNotice').classList.remove('hidden');return}}$('carryNotice').classList.add('hidden')}
+function leaveHTML(l){const d=pd(l.start_date),meta=TYPES[l.leave_type]||TYPES.other,future=pd(l.end_date)>=TODAY;return `<div class="leaveItem" onclick="openLeave('${l.id}')"><div class="dateBox"><b>${d.getDate()}</b><span>${MONTHS[d.getMonth()].slice(0,4)}</span></div><div><h4>${meta.emoji} ${esc(l.title||meta.name)}</h4><p>${fmt(l.start_date)} — ${fmt(l.end_date)} · ${daySpan(l.start_date,l.end_date)} أيام · خصم ${deduction(l)}</p></div><span class="badge ${future?'future':'done'}">${future?'قادمة':'منتهية'}</span></div>`}
+function setFilter(f){filter=f;renderLeaves()}
+function renderLeaves(){let list=[...leaves];if(filter==='future')list=list.filter(l=>pd(l.end_date)>=TODAY);if(filter==='past')list=list.filter(l=>pd(l.end_date)<TODAY);$('allLeaves').innerHTML=list.map(leaveHTML).join('')||'<div style="padding:24px;text-align:center;color:var(--muted);font-size:12px">لا توجد نتائج.</div>'}
+
+function goPage(id,btn){
+ document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));$(id).classList.add('active');
+ document.querySelectorAll('.nav button[data-page]').forEach(b=>b.classList.remove('active'));const target=btn||document.querySelector(`.nav button[data-page="${id}"]`);if(target)target.classList.add('active');
+ window.scrollTo({top:0,behavior:'smooth'});
+}
+function openLeave(id){
+ const l=id?leaves.find(x=>x.id===id):null;$('leaveId').value=l?.id||'';$('leaveType').value=l?.leave_type||'annual';$('leaveTitle').value=l?.title||'';$('leaveFrom').value=l?.start_date||ymd(TODAY);$('leaveTo').value=l?.end_date||ymd(TODAY);$('leaveDeduct').checked=l?l.deduct_from_balance:true;$('leaveModalTitle').textContent=l?'تعديل الإجازة':'إجازة جديدة';$('deleteLeave').classList.toggle('hidden',!l);updateCalc();$('leaveModal').classList.add('open')
+}
+function closeLeave(){$('leaveModal').classList.remove('open')}
+function autoDeduct(){$('leaveDeduct').checked=['annual','emergency'].includes($('leaveType').value);updateCalc()}
+function updateCalc(){const a=$('leaveFrom').value,b=$('leaveTo').value;if(!a||!b||pd(b)<pd(a))return $('leaveCalc').textContent='تحقق من التواريخ.';const w=workdays(a,b);$('leaveCalc').innerHTML=`المدة: <b>${daySpan(a,b)}</b> يوم · أيام العمل: <b>${w}</b> · الخصم: <b>${$('leaveDeduct').checked?w:0}</b>`}
+async function saveLeave(){
+ const id=$('leaveId').value,a=$('leaveFrom').value,b=$('leaveTo').value;if(!a||!b||pd(b)<pd(a))return toast('تحقق من التواريخ');
+ const obj={user_id:session.user.id,leave_type:$('leaveType').value,title:$('leaveTitle').value.trim()||null,start_date:a,end_date:b,deduct_from_balance:$('leaveDeduct').checked,updated_at:new Date().toISOString()};
+ let q=id?client.from('ejazati_leaves').update(obj).eq('id',id):client.from('ejazati_leaves').insert(obj);const {error}=await q;if(error)return toast('تعذر الحفظ');closeLeave();await loadData();toast('تم حفظ الإجازة');
+}
+async function removeLeave(){const id=$('leaveId').value;if(!id||!confirm('حذف هذه الإجازة؟'))return;const {error}=await client.from('ejazati_leaves').delete().eq('id',id);if(error)return toast('تعذر الحذف');closeLeave();await loadData();toast('تم الحذف')}
+
+function renderCalendar(){
+ $('monthTitle').textContent=MONTHS[calDate.getMonth()]+' '+calDate.getFullYear();let out='';['ح','ن','ث','ر','خ','ج','س'].forEach(x=>out+=`<div class="calLabel">${x}</div>`);const first=new Date(calDate.getFullYear(),calDate.getMonth(),1),last=new Date(calDate.getFullYear(),calDate.getMonth()+1,0);for(let i=0;i<first.getDay();i++)out+='<div class="calDay empty"></div>';for(let n=1;n<=last.getDate();n++){const d=new Date(calDate.getFullYear(),calDate.getMonth(),n);let c=isWeekend(d)?' weekend':'';if(isHoliday(d))c+=' holiday';const l=leaves.find(x=>pd(x.start_date)<=d&&pd(x.end_date)>=d);if(l)c+=' '+(TYPES[l.leave_type]?.cls||'');out+=`<div class="calDay${c}">${n}</div>`}$('calGrid').innerHTML=out;
+}
+function shiftMonth(n){calDate=new Date(calDate.getFullYear(),calDate.getMonth()+n,1);renderCalendar()}
+
+function renderSettings(){
+ $('displayName').value=profile?.display_name||'';$('baseBalance').value=settings?.base_balance??30;$('carryBalance').value=settings?.carried_balance??0;$('carryExpiry').value=settings?.carry_expiry||'';$('weekendDays').value=(settings?.weekend_days||[6,0]).join(',');$('accountRole').textContent=profile?.role==='owner'?'👑 مالك':'مستخدم';
+ $('holidayList').innerHTML=holidays.map(h=>`<div class="listRow"><div><b>${esc(h.name)}</b><br><small>${fmt(h.holiday_date)}</small></div><button class="mini danger" onclick="removeHoliday('${h.id}')">حذف</button></div>`).join('')||'<div style="padding:16px;text-align:center;color:var(--muted);font-size:11px">لا توجد عطل مضافة.</div>';
+}
+async function saveSettings(){
+ const profileRes=await client.from('ejazati_profiles').update({display_name:$('displayName').value.trim(),updated_at:new Date().toISOString()}).eq('id',session.user.id);
+ const settingRes=await client.from('ejazati_leave_settings').upsert({user_id:session.user.id,base_balance:Number($('baseBalance').value||0),carried_balance:Number($('carryBalance').value||0),carry_expiry:$('carryExpiry').value||null,weekend_days:$('weekendDays').value.split(',').map(Number),updated_at:new Date().toISOString()});
+ if(profileRes.error||settingRes.error)return toast('تعذر حفظ الإعدادات');profile.display_name=$('displayName').value.trim();await loadData();toast('تم حفظ الإعدادات');
+}
+async function addHoliday(){const d=$('holidayDate').value,n=$('holidayName').value.trim();if(!d||!n)return toast('أدخل التاريخ والاسم');const {error}=await client.from('ejazati_holidays').insert({user_id:session.user.id,holiday_date:d,name:n});if(error)return toast('تعذر إضافة العطلة');$('holidayDate').value='';$('holidayName').value='';await loadData();toast('تمت الإضافة')}
+async function removeHoliday(id){const {error}=await client.from('ejazati_holidays').delete().eq('id',id);if(error)return toast('تعذر الحذف');await loadData()}
+
+function renderAdmin(){
+ const isOwner=profile?.role==='owner';const adminNav=$('lastNav');
+ if(isOwner){adminNav.dataset.page='adminPage';adminNav.innerHTML='<span class="ni">♛</span>المالك';adminNav.setAttribute('onclick',"goPage('adminPage',this)");$('userCount').textContent=users.length;$('latestVersion').textContent=releases[0]?.version||'—';
+ $('usersList').innerHTML=users.map(u=>`<div class="listRow ${u.status==='disabled'?'userDisabled':''}"><div><b>${esc(u.display_name||u.email||'مستخدم')} ${u.role==='owner'?'<span class="adminTag">OWNER</span>':''}</b><br><small>${esc(u.email||'')} · ${u.status==='active'?'نشط':'معطّل'}</small></div>${u.id===session.user.id?'<span class="mini">أنت</span>':`<div class="toolbar"><button class="mini ${u.status==='active'?'danger':'ghost'}" onclick="toggleUser('${u.id}','${u.status}')">${u.status==='active'?'تعطيل':'تفعيل'}</button><button class="mini ghost" onclick="sendReset('${esc(u.email||'')}')">إعادة كلمة السر</button></div>`}</div>`).join('');
+ $('releasesList').innerHTML=releases.map(r=>`<div class="release"><h4>v${esc(r.version)} · ${r.channel==='beta'?'🧪 Beta':'🚀 Production'} · ${esc(r.status)}</h4><p>${esc(r.release_notes||'بدون ملاحظات')}</p><div class="toolbar">${r.status==='testing'?`<button class="mini primary" onclick="releaseAction(${r.id},'approved')">اعتماد</button><button class="mini danger" onclick="releaseAction(${r.id},'rejected')">رفض</button>`:''}${r.status==='approved'?`<button class="mini primary" onclick="publishRelease(${r.id})">تسجيله كمنشور</button>`:''}</div></div>`).join('');
+ }else{adminNav.dataset.page='settingsPage';adminNav.innerHTML='<span class="ni">⚙</span>الإعدادات';adminNav.setAttribute('onclick',"goPage('settingsPage',this)")}
+}
+async function toggleUser(id,status){const next=status==='active'?'disabled':'active';const {error}=await client.from('ejazati_profiles').update({status:next,updated_at:new Date().toISOString()}).eq('id',id);if(error)return toast('تعذر تحديث المستخدم');await loadAdmin();renderAdmin();toast(next==='active'?'تم تفعيل المستخدم':'تم تعطيل المستخدم')}
+async function sendReset(email){if(!email)return;const {error}=await client.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});toast(error?'تعذر إرسال الرابط':'تم إرسال رابط إعادة التعيين')}
+async function createRelease(){const version=$('releaseVersion').value.trim(),notes=$('releaseNotes').value.trim(),channel=$('releaseChannel').value;if(!/^\d+\.\d+\.\d+$/.test(version))return toast('اكتب رقمًا مثل 1.2.0');const {error}=await client.from('ejazati_app_versions').insert({version,channel,status:'testing',release_notes:notes||null,created_by:session.user.id});if(error)return toast(error.message.includes('duplicate')?'الإصدار موجود':'تعذر إضافة الإصدار');$('releaseVersion').value='';$('releaseNotes').value='';await loadAdmin();renderAdmin();toast('تم إنشاء إصدار Beta للتجربة')}
+async function releaseAction(id,status){const patch={status};if(status==='approved')patch.approved_at=new Date().toISOString();const {error}=await client.from('ejazati_app_versions').update(patch).eq('id',id);if(error)return toast('تعذر تحديث الإصدار');await loadAdmin();renderAdmin();toast(status==='approved'?'تم اعتماد الإصدار':'تم رفض الإصدار')}
+async function publishRelease(id){if(!confirm('استخدم هذا بعد أن يتم دمج النسخة واعتماد نشرها على Cloudflare Production. متابعة؟'))return;const {error}=await client.from('ejazati_app_versions').update({status:'published',channel:'production',published_at:new Date().toISOString()}).eq('id',id);if(error)return toast('تعذر تسجيل النشر');await loadAdmin();renderAdmin();toast('تم تسجيل الإصدار كمنشور')}
+
+async function exportBackup(kind='manual'){
+ const backup={format:'ejazati-backup-v1',created_at:new Date().toISOString(),app_version:APP_VERSION,profile:{display_name:profile.display_name},settings,leaves,holidays};
+ const blob=new Blob([JSON.stringify(backup,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`ejazati-backup-${ymd(TODAY)}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+ await client.from('ejazati_backup_history').insert({user_id:session.user.id,backup_kind:kind,app_version:APP_VERSION});toast('تم إنشاء النسخة الاحتياطية');
+}
+async function importBackup(e){const f=e.target.files[0];if(!f)return;try{const x=JSON.parse(await f.text());if(x.format!=='ejazati-backup-v1')throw 0;if(!confirm('سيتم استبدال إجازاتك وعطلك الحالية بمحتوى النسخة. متابعة؟'))return;
+ await client.from('ejazati_leaves').delete().eq('user_id',session.user.id);await client.from('ejazati_holidays').delete().eq('user_id',session.user.id);
+ if(x.settings)await client.from('ejazati_leave_settings').upsert({...x.settings,user_id:session.user.id});
+ if(Array.isArray(x.leaves)&&x.leaves.length)await client.from('ejazati_leaves').insert(x.leaves.map(l=>({user_id:session.user.id,leave_type:l.leave_type,title:l.title,start_date:l.start_date,end_date:l.end_date,deduct_from_balance:l.deduct_from_balance})));
+ if(Array.isArray(x.holidays)&&x.holidays.length)await client.from('ejazati_holidays').insert(x.holidays.map(h=>({user_id:session.user.id,holiday_date:h.holiday_date,name:h.name})));
+ await loadData();toast('تمت استعادة النسخة');}catch(err){toast('ملف النسخة غير صالح')}e.target.value=''}
+
+function renderReleaseUpdate(){
+ const published=releases.filter(r=>r.status==='published'&&r.channel==='production').sort((a,b)=>b.id-a.id)[0];
+ if(published&&published.version!==APP_VERSION&&profile?.role!=='owner'){/* release metadata can be shown here; SW controls actual activation */}
+}
+function hideUpdate(){$('updateBar').classList.add('hidden')}
+async function applyWaitingUpdate(){if(!waitingWorker)return;await client.from('ejazati_backup_history').insert({user_id:session.user.id,backup_kind:'pre_update',app_version:APP_VERSION});waitingWorker.postMessage({type:'SKIP_WAITING'})}
+
+async function setupSW(){
+ if(!('serviceWorker' in navigator))return;
+ const reg=await navigator.serviceWorker.register('./sw.js');
+ if(reg.waiting){waitingWorker=reg.waiting;$('updateBar').classList.remove('hidden')}
+ reg.addEventListener('updatefound',()=>{const nw=reg.installing;if(!nw)return;nw.addEventListener('statechange',()=>{if(nw.state==='installed'&&navigator.serviceWorker.controller){waitingWorker=nw;$('updateBar').classList.remove('hidden')}})});
+ navigator.serviceWorker.addEventListener('controllerchange',()=>location.reload());
+}
+(async()=>{await setupSW();const {data}=await client.auth.getSession();session=data.session;if(session)await enterApp();else showAuth();})();
+</script>
+</body>
+</html>
