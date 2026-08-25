@@ -1,4 +1,4 @@
-const CACHE="ejazati-v1.2.2";
+const CACHE="ejazati-v1.2.3";
 const SHELL=[
   "./index.html",
   "./manifest.webmanifest",
@@ -6,6 +6,7 @@ const SHELL=[
   "./ui-v1.2.0.js",
   "./ui-v1.2.1.js",
   "./ui-v1.2.2.js",
+  "./ui-v1.2.3.js",
   "./assets/icons/icon-192.png",
   "./assets/icons/icon-512.png",
   "./assets/icons/apple-touch-icon.png"
@@ -30,6 +31,7 @@ self.addEventListener("message",event=>{
 
 self.addEventListener("fetch",event=>{
   if(event.request.method!=="GET") return;
+
   const url=new URL(event.request.url);
   if(url.origin!==self.location.origin) return;
 
@@ -50,6 +52,7 @@ self.addEventListener("fetch",event=>{
   event.respondWith((async()=>{
     const cached=await caches.match(event.request);
     if(cached) return cached;
+
     try{
       const response=await fetch(event.request);
       const copy=response.clone();
