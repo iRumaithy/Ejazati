@@ -1,14 +1,14 @@
 class EjazatiScriptsInjector {
   element(element) {
     element.append(
-      '<script src="/auth-hotfix.js?v=1.2.6"></script>' +
-      '<script src="/ui-v1.2.0.js?v=1.2.6"></script>' +
-      '<script src="/ui-v1.2.1.js?v=1.2.6"></script>' +
-      '<script src="/ui-v1.2.2.js?v=1.2.6"></script>' +
-      '<script src="/ui-v1.2.3.js?v=1.2.6"></script>' +
-      '<script src="/ui-v1.2.4.js?v=1.2.6"></script>' +
-      '<script src="/ui-v1.2.5.js?v=1.2.6"></script>' +
-      '<script src="/ui-v1.2.6.js?v=1.2.6"></script>',
+      '<script src="/auth-hotfix.js?v=1.2.7"></script>' +
+      '<script src="/ui-v1.2.0.js?v=1.2.7"></script>' +
+      '<script src="/ui-v1.2.1.js?v=1.2.7"></script>' +
+      '<script src="/ui-v1.2.2.js?v=1.2.7"></script>' +
+      '<script src="/ui-v1.2.3.js?v=1.2.7"></script>' +
+      '<script src="/ui-v1.2.4.js?v=1.2.7"></script>' +
+      '<script src="/ui-v1.2.5.js?v=1.2.7"></script>' +
+      '<script src="/ui-v1.2.7.js?v=1.2.7"></script>',
       { html: true }
     );
   }
