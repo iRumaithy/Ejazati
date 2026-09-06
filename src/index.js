@@ -1,15 +1,16 @@
 class EjazatiScriptsInjector {
   element(element) {
     element.append(
-      '<script src="/auth-hotfix.js?v=1.2.10"></script>' +
-      '<script src="/ui-v1.2.0.js?v=1.2.10"></script>' +
-      '<script src="/ui-v1.2.1.js?v=1.2.10"></script>' +
-      '<script src="/ui-v1.2.2.js?v=1.2.10"></script>' +
-      '<script src="/ui-v1.2.3.js?v=1.2.10"></script>' +
-      '<script src="/ui-v1.2.4.js?v=1.2.10"></script>' +
-      '<script src="/ui-v1.2.5.js?v=1.2.10"></script>' +
-      '<script src="/ui-v1.2.9.js?v=1.2.10"></script>' +
-      '<script src="/ui-v1.2.10.js?v=1.2.10"></script>',
+      '<script src="/auth-hotfix.js?v=1.2.11"></script>' +
+      '<script src="/ui-v1.2.0.js?v=1.2.11"></script>' +
+      '<script src="/ui-v1.2.1.js?v=1.2.11"></script>' +
+      '<script src="/ui-v1.2.2.js?v=1.2.11"></script>' +
+      '<script src="/ui-v1.2.3.js?v=1.2.11"></script>' +
+      '<script src="/ui-v1.2.4.js?v=1.2.11"></script>' +
+      '<script src="/ui-v1.2.5.js?v=1.2.11"></script>' +
+      '<script src="/ui-v1.2.9.js?v=1.2.11"></script>' +
+      '<script src="/ui-v1.2.10.js?v=1.2.11"></script>' +
+      '<script src="/ui-v1.2.11.js?v=1.2.11"></script>',
       { html: true }
     );
   }
