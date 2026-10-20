@@ -37,7 +37,9 @@
 
   function clearLegacyNotices(){
     document.getElementById("liveUpdateNoticeV128")?.remove();
-    document.getElementById("liveUpdateNoticeV1210")?.remove();
+    const live=document.getElementById("liveUpdateNoticeV1210");
+    const version=live?.textContent?.match(/v(\d+\.\d+\.\d+)/i)?.[1];
+    if(live&&(!version||!newerThan(version,window.EJAZATI_APP_VERSION||APP_VERSION)))live.remove();
     const legacy=document.getElementById("updateBar");
     if(legacy&&!legacy.classList.contains("hidden"))legacy.classList.add("hidden");
   }
@@ -71,6 +73,7 @@
   function dismiss(v){
     localStorage.setItem(dismissKey(v),String(Date.now()+DISMISS_HOURS*3600000));
     document.getElementById("liveUpdateNoticeV1210")?.remove();
+    lastRemoteVersion=null;
   }
 
   async function prepareWorker(){
@@ -99,7 +102,7 @@
   }
 
   function showUpdate(version,notes=""){
-    if(!newerThan(version,VERSION)||isDismissed(version)){document.getElementById("liveUpdateNoticeV1210")?.remove();return}
+    if(!newerThan(version,window.EJAZATI_APP_VERSION||APP_VERSION)||isDismissed(version)){document.getElementById("liveUpdateNoticeV1210")?.remove();return}
     let box=document.getElementById("liveUpdateNoticeV1210");
     if(!box){box=document.createElement("div");box.id="liveUpdateNoticeV1210";box.className="liveUpdateNoticeV1210";document.body.appendChild(box)}
     const safe=typeof esc==="function"?esc(notes||"تحديث جديد جاهز."):(notes||"تحديث جديد جاهز.");
@@ -113,7 +116,7 @@
     try{
       const {data,error}=await client.from("ejazati_app_versions").select("version,release_notes,published_at").eq("channel","production").eq("status","published").order("published_at",{ascending:false,nullsFirst:false}).limit(1).maybeSingle();
       if(error||!data?.version)return;
-      if(!newerThan(data.version,VERSION)){
+      if(!newerThan(data.version,window.EJAZATI_APP_VERSION||APP_VERSION)){
         lastRemoteVersion=null;
         clearLegacyNotices();
         return;

@@ -2,6 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
+<meta name="ejazati-version" content="1.2.13">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0b1630">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -183,14 +184,18 @@ button,input,select,textarea{font:inherit}button{cursor:pointer}.hidden{display:
   </div>
 </div>
 
+<script src="./ejazati-core.js?v=1.2.13"></script>
 <script>
-const APP_VERSION='1.1.0';
+const APP_VERSION=EjazatiCore.VERSION;
 const SUPABASE_URL="https://itcbahydyqhlybofcyuh.supabase.co";
 const SUPABASE_KEY="sb_publishable_qL-6DKVkAc3XWJ7JH-p2_A_-8myYRgp";
 const client=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
 const MONTHS=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
 const TYPES={annual:{name:'سنوية',emoji:'🌴',cls:'annual'},sick:{name:'مرضية',emoji:'🩺',cls:'sick'},emergency:{name:'اضطرارية',emoji:'⚡',cls:'annual'},unpaid:{name:'بدون راتب',emoji:'◌',cls:''},mission:{name:'مهمة / دورة',emoji:'🎓',cls:''},other:{name:'أخرى',emoji:'•',cls:''}};
-const TODAY=new Date();TODAY.setHours(0,0,0,0);
+const TODAY=new Date();
+function refreshToday(){const [y,m,d]=EjazatiCore.dubaiToday().split('-').map(Number);const before=ymd(TODAY);TODAY.setFullYear(y,m-1,d);TODAY.setHours(0,0,0,0);return before!==ymd(TODAY);}
+refreshToday();
+let appReady=false,authEpoch=0,recoveryMode=false,leaveBusy=false;
 let session=null, profile=null, settings=null, leaves=[], holidays=[], users=[], releases=[];
 let filter='all', calDate=new Date(TODAY.getFullYear(),TODAY.getMonth(),1), waitingWorker=null;
 
@@ -200,38 +205,50 @@ function esc(s=''){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt
 function ymd(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function pd(s){const [y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)}
 function fmt(s){if(!s)return'—';const d=pd(s);return d.getDate()+' '+MONTHS[d.getMonth()]+' '+d.getFullYear()}
-function daySpan(a,b){return Math.round((pd(b)-pd(a))/86400000)+1}
+function daySpan(a,b){return EjazatiCore.daySpan(a,b)}
 function isWeekend(d){return (settings?.weekend_days||[6,0]).includes(d.getDay())}
 function isHoliday(d){return holidays.some(h=>h.holiday_date===ymd(d))}
 function isWorkday(d){return !isWeekend(d)&&!isHoliday(d)}
-function workdays(a,b){let n=0,d=pd(a),e=pd(b);while(d<=e){if(isWorkday(d))n++;d.setDate(d.getDate()+1)}return n}
+function workdays(a,b){return EjazatiCore.workdays(a,b,settings?.weekend_days||[6,0],holidays)}
 function deduction(l){return l.deduct_from_balance?workdays(l.start_date,l.end_date):0}
 
 function authMessage(t,ok=false){$('authMsg').textContent=t;$('authMsg').classList.remove('hidden');$('authMsg').style.background=ok?'rgba(111,225,194,.08)':'rgba(82,199,255,.08)'}
 function showLogin(){$('signupForm').classList.add('hidden');$('recoveryForm').classList.add('hidden');$('loginForm').classList.remove('hidden')}
 function showSignup(){$('loginForm').classList.add('hidden');$('recoveryForm').classList.add('hidden');$('signupForm').classList.remove('hidden')}
 async function signIn(e){e.preventDefault();const {error}=await client.auth.signInWithPassword({email:$('loginEmail').value.trim(),password:$('loginPassword').value});if(error)authMessage(error.message);}
-async function signUp(e){e.preventDefault();const {data,error}=await client.auth.signUp({email:$('signupEmail').value.trim(),password:$('signupPassword').value,options:{data:{display_name:$('signupName').value.trim()}}});if(error)return authMessage(error.message);if(!data.session){authMessage('تم إنشاء الحساب. افتح رسالة التأكيد في بريدك ثم سجّل الدخول.',true);showLogin();}}
+async function signUp(e){e.preventDefault();const {data,error}=await client.auth.signUp({email:$('signupEmail').value.trim(),password:$('signupPassword').value,options:{data:{app:'ejazati',display_name:$('signupName').value.trim()}}});if(error)return authMessage(error.message);if(!data.session){authMessage('تم إنشاء الحساب. افتح رسالة التأكيد في بريدك ثم سجّل الدخول.',true);showLogin();}}
 async function forgotPassword(){const email=$('loginEmail').value.trim()||prompt('اكتب بريدك الإلكتروني');if(!email)return;const {error}=await client.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});authMessage(error?error.message:'أرسلنا رابط إعادة تعيين كلمة المرور إلى بريدك.',!error)}
-async function setNewPassword(e){e.preventDefault();const {error}=await client.auth.updateUser({password:$('newPassword').value});if(error)return authMessage(error.message);toast('تم تغيير كلمة المرور');showApp();}
+async function setNewPassword(e){e.preventDefault();const {error}=await client.auth.updateUser({password:$('newPassword').value});if(error)return authMessage(error.message);recoveryMode=false;toast('تم تغيير كلمة المرور');await enterApp();}
 async function signOut(){await client.auth.signOut();location.reload()}
 
-client.auth.onAuthStateChange(async (event,newSession)=>{session=newSession;if(event==='PASSWORD_RECOVERY'){$('loginForm').classList.add('hidden');$('signupForm').classList.add('hidden');$('recoveryForm').classList.remove('hidden');$('authView').classList.remove('hidden');$('appView').classList.add('hidden');return}if(newSession)await enterApp();else showAuth();});
+client.auth.onAuthStateChange((event,newSession)=>{
+ const oldId=session?.user?.id;session=newSession;
+ if(event==='PASSWORD_RECOVERY'){
+  recoveryMode=true;authEpoch++;$('loginForm').classList.add('hidden');$('signupForm').classList.add('hidden');$('recoveryForm').classList.remove('hidden');$('authView').classList.remove('hidden');$('appView').classList.add('hidden');$('nav').classList.add('hidden');return;
+ }
+ if(!newSession){authEpoch++;profile=null;settings=null;leaves=[];holidays=[];users=[];releases=[];showAuth();return;}
+ if(!appReady||recoveryMode||((event==='TOKEN_REFRESHED'||event==='SIGNED_IN')&&oldId===newSession.user.id&&profile?.id===oldId&&!$('appView').classList.contains('hidden')))return;
+ const epoch=++authEpoch;
+ setTimeout(()=>{if(epoch===authEpoch&&session?.user?.id===newSession.user.id)enterApp().catch(()=>toast('تعذر تحميل الحساب. أعد المحاولة.'));},0);
+});
 
 function showAuth(){$('authView').classList.remove('hidden');$('appView').classList.add('hidden');$('nav').classList.add('hidden')}
 function showApp(){$('authView').classList.add('hidden');$('appView').classList.remove('hidden');$('nav').classList.remove('hidden')}
 async function enterApp(){
- showApp();
- const uid=session.user.id;
+ if(!session?.user?.id||recoveryMode)return;
+ const uid=session.user.id,epoch=authEpoch;
+ const joined=await client.rpc('ejazati_join_app');
+ if(epoch!==authEpoch||session?.user?.id!==uid)return;
+ if(joined.error||joined.data!==true){showAuth();authMessage(joined.error?.code==='42501'?'هذا الحساب معطّل في إجازاتي. تواصل مع المالك.':'تعذر تحميل عضوية إجازاتي. أعد المحاولة.');return;}
  let p=await client.from('ejazati_profiles').select('*').eq('id',uid).single();
- if(p.error){toast('تعذر تحميل الحساب');console.error(p.error);return}
+ if(p.error||epoch!==authEpoch||session?.user?.id!==uid){if(p.error)toast('تعذر تحميل الحساب');return}
  profile=p.data;
  if(profile.role==='user'){
    const claim=await client.rpc('ejazati_claim_owner');
    if(claim.data===true){p=await client.from('ejazati_profiles').select('*').eq('id',uid).single();profile=p.data;toast('تم تفعيل هذا الحساب كمالك لإجازاتي 👑')}
  }
  if(profile.status==='disabled'){alert('هذا الحساب معطّل من مالك المنصة.');await client.auth.signOut();return}
- await loadData();
+ if(await loadData()!==false&&epoch===authEpoch&&session?.user?.id===uid)showApp();
 }
 
 async function loadData(){
@@ -249,11 +266,13 @@ async function loadData(){
 }
 
 async function loadAdmin(){
+ const uid=session?.user?.id,epoch=authEpoch;
  const [u,r]=await Promise.all([
    client.from('ejazati_profiles').select('*').order('created_at',{ascending:false}),
    client.from('ejazati_app_versions').select('*').order('created_at',{ascending:false})
  ]);
- users=u.data||[];releases=r.data||[];
+ if(epoch!==authEpoch||session?.user?.id!==uid)return;
+ if(!u.error)users=u.data||[];if(!r.error)releases=r.data||[];
 }
 
 function totals(){
@@ -289,11 +308,32 @@ function closeLeave(){$('leaveModal').classList.remove('open')}
 function autoDeduct(){$('leaveDeduct').checked=['annual','emergency'].includes($('leaveType').value);updateCalc()}
 function updateCalc(){const a=$('leaveFrom').value,b=$('leaveTo').value;if(!a||!b||pd(b)<pd(a))return $('leaveCalc').textContent='تحقق من التواريخ.';const w=workdays(a,b);$('leaveCalc').innerHTML=`المدة: <b>${daySpan(a,b)}</b> يوم · أيام العمل: <b>${w}</b> · الخصم: <b>${$('leaveDeduct').checked?w:0}</b>`}
 async function saveLeave(){
- const id=$('leaveId').value,a=$('leaveFrom').value,b=$('leaveTo').value;if(!a||!b||pd(b)<pd(a))return toast('تحقق من التواريخ');
- const obj={user_id:session.user.id,leave_type:$('leaveType').value,title:$('leaveTitle').value.trim()||null,start_date:a,end_date:b,deduct_from_balance:$('leaveDeduct').checked,updated_at:new Date().toISOString()};
- let q=id?client.from('ejazati_leaves').update(obj).eq('id',id):client.from('ejazati_leaves').insert(obj);const {error}=await q;if(error)return toast('تعذر الحفظ');closeLeave();await loadData();toast('تم حفظ الإجازة');
+ if(leaveBusy||!session?.user?.id)return;
+ const id=$('leaveId').value,a=$('leaveFrom').value,b=$('leaveTo').value;
+ if(!EjazatiCore.validDate(a)||!EjazatiCore.validDate(b)||b<a)return toast('تحقق من التواريخ');
+ const old=id?leaves.find(l=>l.id===id):null;
+ if(id&&!old)return toast('تغيرت الإجازة؛ حدّث القائمة أولًا');
+ leaveBusy=true;
+ try{
+  const obj={user_id:session.user.id,leave_type:$('leaveType').value,title:$('leaveTitle').value.trim()||null,start_date:a,end_date:b,deduct_from_balance:$('leaveDeduct').checked,updated_at:new Date().toISOString()};
+  const query=id?client.from('ejazati_leaves').update(obj).eq('id',id).eq('user_id',session.user.id).eq('updated_at',old.updated_at):client.from('ejazati_leaves').insert(obj);
+  const {data,error}=await query.select('id').maybeSingle();
+  if(error)return toast('تعذر الحفظ؛ لم تُحفظ التغييرات');
+  if(!data)return toast('عُدلت الإجازة على جهاز آخر؛ حدّث القائمة ثم أعد المحاولة');
+  closeLeave();await loadData();toast('تم حفظ الإجازة');
+ }catch(_){toast('تعذر الاتصال؛ أعد المحاولة عند عودة الإنترنت');}finally{leaveBusy=false;}
 }
-async function removeLeave(){const id=$('leaveId').value;if(!id||!confirm('حذف هذه الإجازة؟'))return;const {error}=await client.from('ejazati_leaves').delete().eq('id',id);if(error)return toast('تعذر الحذف');closeLeave();await loadData();toast('تم الحذف')}
+async function removeLeave(){
+ if(leaveBusy||!session?.user?.id)return;
+ const id=$('leaveId').value,old=leaves.find(l=>l.id===id);
+ if(!old||!confirm('حذف هذه الإجازة؟'))return;
+ leaveBusy=true;
+ try{
+  const {data,error}=await client.from('ejazati_leaves').delete().eq('id',id).eq('user_id',session.user.id).eq('updated_at',old.updated_at).select('id').maybeSingle();
+  if(error)return toast('تعذر الحذف');if(!data)return toast('تغيرت الإجازة على جهاز آخر؛ حدّث القائمة');
+  closeLeave();await loadData();toast('تم الحذف');
+ }catch(_){toast('تعذر الاتصال؛ أعد المحاولة عند عودة الإنترنت');}finally{leaveBusy=false;}
+}
 
 function renderCalendar(){
  $('monthTitle').textContent=MONTHS[calDate.getMonth()]+' '+calDate.getFullYear();let out='';['ح','ن','ث','ر','خ','ج','س'].forEach(x=>out+=`<div class="calLabel">${x}</div>`);const first=new Date(calDate.getFullYear(),calDate.getMonth(),1),last=new Date(calDate.getFullYear(),calDate.getMonth()+1,0);for(let i=0;i<first.getDay();i++)out+='<div class="calDay empty"></div>';for(let n=1;n<=last.getDate();n++){const d=new Date(calDate.getFullYear(),calDate.getMonth(),n);let c=isWeekend(d)?' weekend':'';if(isHoliday(d))c+=' holiday';const l=leaves.find(x=>pd(x.start_date)<=d&&pd(x.end_date)>=d);if(l)c+=' '+(TYPES[l.leave_type]?.cls||'');out+=`<div class="calDay${c}">${n}</div>`}$('calGrid').innerHTML=out;
@@ -315,7 +355,7 @@ async function removeHoliday(id){const {error}=await client.from('ejazati_holida
 function renderAdmin(){
  const isOwner=profile?.role==='owner';const adminNav=$('lastNav');
  if(isOwner){adminNav.dataset.page='adminPage';adminNav.innerHTML='<span class="ni">♛</span>المالك';adminNav.setAttribute('onclick',"goPage('adminPage',this)");$('userCount').textContent=users.length;$('latestVersion').textContent=releases[0]?.version||'—';
- $('usersList').innerHTML=users.map(u=>`<div class="listRow ${u.status==='disabled'?'userDisabled':''}"><div><b>${esc(u.display_name||u.email||'مستخدم')} ${u.role==='owner'?'<span class="adminTag">OWNER</span>':''}</b><br><small>${esc(u.email||'')} · ${u.status==='active'?'نشط':'معطّل'}</small></div>${u.id===session.user.id?'<span class="mini">أنت</span>':`<div class="toolbar"><button class="mini ${u.status==='active'?'danger':'ghost'}" onclick="toggleUser('${u.id}','${u.status}')">${u.status==='active'?'تعطيل':'تفعيل'}</button><button class="mini ghost" onclick="sendReset('${esc(u.email||'')}')">إعادة كلمة السر</button></div>`}</div>`).join('');
+ $('usersList').innerHTML=users.map(u=>`<div class="listRow ${u.status==='disabled'?'userDisabled':''}"><div><b>${esc(u.display_name||u.email||'مستخدم')} ${u.role==='owner'?'<span class="adminTag">OWNER</span>':''}</b><br><small>${esc(u.email||'')} · ${u.status==='active'?'نشط':'معطّل'}</small></div>${u.id===session.user.id?'<span class="mini">أنت</span>':`<div class="toolbar"><button class="mini ${u.status==='active'?'danger':'ghost'}" onclick="toggleUser('${u.id}','${u.status}')">${u.status==='active'?'تعطيل':'تفعيل'}</button><button class="mini ghost" onclick="sendReset(${esc(JSON.stringify(u.email||''))})">إعادة كلمة السر</button></div>`}</div>`).join('');
  $('releasesList').innerHTML=releases.map(r=>`<div class="release"><h4>v${esc(r.version)} · ${r.channel==='beta'?'🧪 Beta':'🚀 Production'} · ${esc(r.status)}</h4><p>${esc(r.release_notes||'بدون ملاحظات')}</p><div class="toolbar">${r.status==='testing'?`<button class="mini primary" onclick="releaseAction(${r.id},'approved')">اعتماد</button><button class="mini danger" onclick="releaseAction(${r.id},'rejected')">رفض</button>`:''}${r.status==='approved'?`<button class="mini primary" onclick="publishRelease(${r.id})">تسجيله كمنشور</button>`:''}</div></div>`).join('');
  }else{adminNav.dataset.page='settingsPage';adminNav.innerHTML='<span class="ni">⚙</span>الإعدادات';adminNav.setAttribute('onclick',"goPage('settingsPage',this)")}
 }
@@ -330,12 +370,19 @@ async function exportBackup(kind='manual'){
  const blob=new Blob([JSON.stringify(backup,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`ejazati-backup-${ymd(TODAY)}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
  await client.from('ejazati_backup_history').insert({user_id:session.user.id,backup_kind:kind,app_version:APP_VERSION});toast('تم إنشاء النسخة الاحتياطية');
 }
-async function importBackup(e){const f=e.target.files[0];if(!f)return;try{const x=JSON.parse(await f.text());if(x.format!=='ejazati-backup-v1')throw 0;if(!confirm('سيتم استبدال إجازاتك وعطلك الحالية بمحتوى النسخة. متابعة؟'))return;
- await client.from('ejazati_leaves').delete().eq('user_id',session.user.id);await client.from('ejazati_holidays').delete().eq('user_id',session.user.id);
- if(x.settings)await client.from('ejazati_leave_settings').upsert({...x.settings,user_id:session.user.id});
- if(Array.isArray(x.leaves)&&x.leaves.length)await client.from('ejazati_leaves').insert(x.leaves.map(l=>({user_id:session.user.id,leave_type:l.leave_type,title:l.title,start_date:l.start_date,end_date:l.end_date,deduct_from_balance:l.deduct_from_balance})));
- if(Array.isArray(x.holidays)&&x.holidays.length)await client.from('ejazati_holidays').insert(x.holidays.map(h=>({user_id:session.user.id,holiday_date:h.holiday_date,name:h.name})));
- await loadData();toast('تمت استعادة النسخة');}catch(err){toast('ملف النسخة غير صالح')}e.target.value=''}
+let restoreBusy=false;
+async function importBackup(e){
+ const f=e.target.files?.[0];if(!f||restoreBusy)return;
+ try{
+  if(f.size>5*1024*1024)throw new Error('ملف النسخة أكبر من الحد المسموح');
+  const payload=EjazatiCore.backupPayload(JSON.parse(await f.text()));
+  if(!confirm('سيتم استبدال إجازاتك وعطلك الحالية بمحتوى النسخة. متابعة؟'))return;
+  restoreBusy=true;
+  const {error}=await client.rpc('ejazati_restore_backup',{p_backup:payload});
+  if(error)throw new Error('تعذرت الاستعادة؛ لم تُستبدل بياناتك الحالية. تحقق من الملف والاتصال.');
+  await loadData();toast('تمت استعادة النسخة');
+ }catch(err){toast(err.message||'ملف النسخة غير صالح');}finally{restoreBusy=false;e.target.value='';}
+}
 
 function renderReleaseUpdate(){
  const published=releases.filter(r=>r.status==='published'&&r.channel==='production').sort((a,b)=>b.id-a.id)[0];
@@ -351,7 +398,25 @@ async function setupSW(){
  reg.addEventListener('updatefound',()=>{const nw=reg.installing;if(!nw)return;nw.addEventListener('statechange',()=>{if(nw.state==='installed'&&navigator.serviceWorker.controller){waitingWorker=nw;$('updateBar').classList.remove('hidden')}})});
  navigator.serviceWorker.addEventListener('controllerchange',()=>location.reload());
 }
-(async()=>{await setupSW();const {data}=await client.auth.getSession();session=data.session;if(session)await enterApp();else showAuth();})();
+document.addEventListener('DOMContentLoaded',async()=>{
+ appReady=true;
+ try{await setupSW();}catch(_){console.warn('تعذر تجهيز العمل دون اتصال؛ يبقى تسجيل الدخول متاحًا.');}
+ try{const {data,error}=await client.auth.getSession();if(error)throw error;session=data.session;if(!recoveryMode){if(session)await enterApp();else showAuth();}}
+ catch(_){showAuth();authMessage('تعذر تحميل الجلسة. تحقق من الاتصال ثم أعد المحاولة.');}
+},{once:true});
+function checkDayRollover(){if(document.hidden||!refreshToday()||!session?.user?.id||!profile||recoveryMode)return;loadData().catch(()=>toast('تعذر تحديث رصيد اليوم؛ تحقق من الاتصال'));}
+setInterval(checkDayRollover,60000);document.addEventListener('visibilitychange',checkDayRollover);window.addEventListener('focus',checkDayRollover);
 </script>
+<script src="./auth-hotfix.js?v=1.2.13"></script>
+<script src="./ui-v1.2.0.js?v=1.2.13"></script>
+<script src="./ui-v1.2.1.js?v=1.2.13"></script>
+<script src="./ui-v1.2.2.js?v=1.2.13"></script>
+<script src="./ui-v1.2.3.js?v=1.2.13"></script>
+<script src="./ui-v1.2.4.js?v=1.2.13"></script>
+<script src="./ui-v1.2.5.js?v=1.2.13"></script>
+<script src="./ui-v1.2.9.js?v=1.2.13"></script>
+<script src="./ui-v1.2.10.js?v=1.2.13"></script>
+<script src="./ui-v1.2.11.js?v=1.2.13"></script>
+<script src="./ui-v1.2.12.js?v=1.2.13"></script>
 </body>
 </html>

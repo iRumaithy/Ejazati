@@ -460,14 +460,18 @@
 
   // Keep backups tagged with the visible release rather than the legacy inline constant.
   window.exportBackup = async function exportBackupV12(kind = "manual") {
-    const backup = { format: "ejazati-backup-v1", created_at: new Date().toISOString(), app_version: EJAZATI_VERSION, profile: { display_name: profile.display_name, username: profile.username || null }, settings, leaves, holidays: customHolidaysV12, holiday_overrides: holidayOverridesV12 };
+    if(!session?.user?.id||!settings)return toast('حمّل بيانات الحساب أولًا');
+    const snapshot=window.ejazatiBackupSnapshot?.();
+    if(!snapshot)return toast('تعذر تجهيز النسخة؛ أعد تحميل البيانات');
+    const version=window.EJAZATI_APP_VERSION||APP_VERSION;
+    const backup = {format:'ejazati-backup-v1',created_at:new Date().toISOString(),app_version:version,profile:{display_name:profile.display_name,username:profile.username||null},...snapshot};
     const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
     a.download = `ejazati-backup-${ymd(TODAY)}.json`;
     a.click();
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-    await client.from("ejazati_backup_history").insert({ user_id: session.user.id, backup_kind: kind, app_version: EJAZATI_VERSION });
+    await client.from("ejazati_backup_history").insert({ user_id: session.user.id, backup_kind: kind, app_version: version });
     toast("تم إنشاء النسخة الاحتياطية");
   };
 

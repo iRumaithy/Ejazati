@@ -6,6 +6,7 @@
   let customHolidays = [];
   let loading = false;
   let loadedOnce = false;
+  let reloadQueued = false;
 
   const yearNow = () => Number(new Intl.DateTimeFormat("en", { year: "numeric", timeZone: UAE_TZ }).format(new Date()));
   const normalizeUsername = (value) => String(value || "").trim().toLowerCase();
@@ -178,27 +179,7 @@
   }
 
   function consumptionForCurrentYear() {
-    const year = yearNow();
-    const startYear = new Date(year, 0, 1);
-    const endYear = new Date(year, 11, 31);
-    let used = 0;
-    let reserved = 0;
-
-    for (const leave of (leaves || [])) {
-      if (!leave.deduct_from_balance) continue;
-      let start = pd(leave.start_date);
-      let end = pd(leave.end_date);
-      if (end < startYear || start > endYear) continue;
-      if (start < startYear) start = new Date(startYear);
-      if (end > endYear) end = new Date(endYear);
-
-      for (let day = new Date(start); day <= end; day.setDate(day.getDate() + 1)) {
-        if (!isWorkday(day)) continue;
-        if (day < TODAY) used += 1;
-        else reserved += 1;
-      }
-    }
-    return { used, reserved };
+    return EjazatiCore.consumption(leaves,ymd(TODAY),settings?.weekend_days||[6,0],holidays);
   }
 
   totals = function totalsV121() {
@@ -219,11 +200,13 @@
   };
 
   async function freshLoad() {
-    if (loading || !session?.user?.id || !profile?.id) return;
+    if (!session?.user?.id || !profile?.id) return false;
+    if (loading) { reloadQueued = true; return false; }
     loading = true;
-    const uid = session.user.id;
+    const uid = session.user.id,epoch=authEpoch;
     try {
-      try { await client.rpc("ejazati_ensure_current_year"); } catch (_) {}
+      const ensured=await client.rpc("ejazati_ensure_current_year");
+      if(ensured.error)throw ensured.error;
       const year = yearNow();
       const [s, l, c, v, o, ov] = await Promise.all([
         client.from("ejazati_leave_settings").select("*").eq("user_id", uid).single(),
@@ -234,10 +217,12 @@
         client.from("ejazati_holiday_overrides").select("*").eq("user_id", uid)
       ]);
 
+      if(epoch!==authEpoch||session?.user?.id!==uid)return false;
+      for(const result of [s,l,c,o,ov])if(result.error)throw result.error;
       settings = s.data || { user_id: uid, base_balance: 30, carried_balance: 0, weekend_days: [6, 0], balance_year: year, year_opening_balance: 30, balance_adjustment: 0 };
       leaves = l.data || [];
       customHolidays = c.data || [];
-      releases = v.data || [];
+      if(!v.error)releases=v.data||[];
       officialHolidays = o.data || [];
       holidayOverrides = ov.data || [];
 
@@ -254,19 +239,26 @@
         } catch (_) {}
       }
 
+      if(epoch!==authEpoch||session?.user?.id!==uid)return false;
       holidays = allEffectiveHolidays();
 
       if (o.error) console.error("Ejazati official holidays", o.error);
       if (ov.error) console.error("Ejazati holiday overrides", ov.error);
       if (profile.role === "owner") await loadAdmin();
       loadedOnce = true;
-      render();
+      if(epoch!==authEpoch||session?.user?.id!==uid)return false;
+      render();return true;
+    } catch(error) {
+      if(epoch===authEpoch&&session?.user?.id===uid)toast('تعذر تحديث البيانات؛ احتُفظ بآخر بيانات محمّلة. تحقق من الاتصال.');
+      return false;
     } finally {
       loading = false;
+      if(reloadQueued){reloadQueued=false;setTimeout(()=>freshLoad(),0);}
     }
   }
 
   loadData = freshLoad;
+  window.ejazatiBackupSnapshot=()=>({settings,leaves,holidays:customHolidays,holiday_overrides:holidayOverrides});
 
   const previousRenderSettings = renderSettings;
   renderSettings = function renderSettingsV121() {
@@ -512,22 +504,8 @@
     restructureBalanceFields();
     injectCalendarLegend();
 
-    let attempts = 0;
-    const waitForAccount = () => {
-      if (session?.user?.id && profile?.id) {
-        freshLoad();
-        return;
-      }
-      attempts += 1;
-      if (attempts < 50) setTimeout(waitForAccount, 200);
-    };
-    setTimeout(waitForAccount, 100);
+    // Startup and auth changes are coordinated once by index.html.
 
-    try {
-      client.auth.onAuthStateChange((_event, newSession) => {
-        if (newSession) setTimeout(() => freshLoad(), 250);
-      });
-    } catch (_) {}
   }
 
   boot();
