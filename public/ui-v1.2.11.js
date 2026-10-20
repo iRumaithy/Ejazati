@@ -251,7 +251,7 @@
     const notice = document.getElementById("liveUpdateNoticeV1210");
     if (notice) {
       const match = (notice.textContent || "").match(/v(\d+\.\d+\.\d+)/i);
-      if (!match || !newerThan(match[1], VERSION)) notice.remove();
+      if (!match || !newerThan(match[1], window.EJAZATI_APP_VERSION||APP_VERSION)) notice.remove();
     }
   }
 

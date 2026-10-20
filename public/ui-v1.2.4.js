@@ -109,28 +109,7 @@
   }
 
   function getConsumptionForYear() {
-    const year = yearNow();
-    const startYear = new Date(year, 0, 1);
-    const endYear = new Date(year, 11, 31);
-    let used = 0;
-    let reserved = 0;
-
-    for (const leave of (leaves || [])) {
-      if (!leave.deduct_from_balance) continue;
-      let start = pd(leave.start_date);
-      let end = pd(leave.end_date);
-
-      if (end < startYear || start > endYear) continue;
-      if (start < startYear) start = new Date(startYear);
-      if (end > endYear) end = new Date(endYear);
-
-      for (let day = new Date(start); day <= end; day.setDate(day.getDate() + 1)) {
-        if (!isWorkday(day)) continue;
-        if (day < TODAY) used += 1;
-        else reserved += 1;
-      }
-    }
-    return { used, reserved };
+    return EjazatiCore.consumption(leaves,ymd(TODAY),settings?.weekend_days||[6,0],holidays);
   }
 
   function setupCarryUI() {
@@ -179,19 +158,15 @@
       expiry.value = "";
     }
 
+    carry.dataset.v124OriginalCarry = String(Number(settings?.carried_balance || 0));
+    current.dataset.v124ManualBase = String(Number(current.value || 0));
     if (carry.dataset.v124Bound === "1") return;
     carry.dataset.v124Bound = "1";
 
-    let originalCarry = Number(settings?.carried_balance || 0);
-    let baseCurrent = Number(current.value || 0);
-
-    carry.dataset.v124OriginalCarry = String(originalCarry);
-    current.dataset.v124ManualBase = String(baseCurrent);
-
     const recalc = () => {
       const newCarry = Number(carry.value || 0);
-      const manualBase = Number(current.dataset.v124ManualBase || baseCurrent);
-      const delta = newCarry - originalCarry;
+      const manualBase = Number(current.dataset.v124ManualBase || 0);
+      const delta = newCarry - Number(carry.dataset.v124OriginalCarry || 0);
       current.value = String(Math.max(0, Math.round(manualBase + delta)));
 
       const preview = document.getElementById("carryDeltaPreview");
@@ -202,7 +177,7 @@
 
     current.addEventListener("input", () => {
       const newCarry = Number(carry.value || 0);
-      const delta = newCarry - originalCarry;
+      const delta = newCarry - Number(carry.dataset.v124OriginalCarry || 0);
       const currentTyped = Number(current.value || 0);
       current.dataset.v124ManualBase = String(currentTyped - delta);
     });
@@ -388,10 +363,16 @@
     };
   }
 
+  let savingSettings=false;
   window.saveSettings = async function saveSettingsV124() {
+    if(savingSettings)return;
+    savingSettings=true;
+    try {
     const username = String(document.getElementById("accountUsername")?.value || profile?.username || "").trim().toLowerCase();
     if (!/^[a-z0-9._-]{3,30}$/.test(username)) return toast("تحقق من اسم المستخدم");
 
+    const base=Number(document.getElementById("baseBalance")?.value||0),carryValue=Number(document.getElementById("carryBalance")?.value||0),currentValue=Number(document.getElementById("currentBalanceInput")?.value||0);
+    if([base,carryValue,currentValue].some(v=>!Number.isSafeInteger(v)||v<0||v>100000))return toast('الرصيد يجب أن يكون عددًا صحيحًا من 0 إلى 100000');
     const profileRes = await client.from("ejazati_profiles").update({
       display_name: document.getElementById("displayName")?.value?.trim() || null,
       username,
@@ -446,6 +427,7 @@
 
     await loadData();
     toast(carryDelta !== 0 ? "تم الحفظ وإضافة الرصيد المرحّل إلى رصيدك الحالي" : "تم حفظ الإعدادات");
+    }catch(_){toast('تعذر الحفظ؛ تحقق من الاتصال');}finally{savingSettings=false;}
   };
 
   function updateVersionUI() {
