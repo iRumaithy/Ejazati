@@ -27,7 +27,7 @@ async function app(t,{loggedIn=true,serviceWorkerError=false,recovery=false,fail
   })().then(resolve,reject)}};
   return q;
  }
- const client={from,async rpc(name,args){if(insideAuth)throw new Error('RPC while auth lock is held');calls.push({rpc:name,args:clone(args||null)});if(name==='ejazati_claim_owner')return {data:false,error:null};return {data:{ok:true},error:state.rpcError};},auth:{onAuthStateChange(cb){authCallback=cb;return {data:{subscription:{unsubscribe(){}}}}},async getSession(){return {data:{session:state.session},error:null}},async signOut(){state.session=null;authCallback('SIGNED_OUT',null);return{}},async updateUser(){return {error:null}}}};
+ const client={from,async rpc(name,args){if(insideAuth)throw new Error('RPC while auth lock is held');calls.push({rpc:name,args:clone(args||null)});if(name==='ejazati_join_app')return {data:true,error:state.joinError||null};if(name==='ejazati_claim_owner')return {data:false,error:null};return {data:{ok:true},error:state.rpcError};},auth:{onAuthStateChange(cb){authCallback=cb;return {data:{subscription:{unsubscribe(){}}}}},async getSession(){return {data:{session:state.session},error:null}},async signOut(){state.session=null;authCallback('SIGNED_OUT',null);return{}},async updateUser(){return {error:null}}}};
  const vc=new VirtualConsole();vc.on('jsdomError',e=>errors.push(e.message));
  const dom=new JSDOM(html,{url:'https://ejazati.test/',runScripts:'outside-only',pretendToBeVisual:true,virtualConsole:vc});const w=dom.window;
  const NativeDate=w.Date;
@@ -44,7 +44,7 @@ async function app(t,{loggedIn=true,serviceWorkerError=false,recovery=false,fail
  return {w,db,state,calls,errors,blobs,run:code=>vm.runInContext(code,dom.getInternalVMContext()),async emit(event,s=state.session){insideAuth=true;let returned;try{returned=authCallback(event,s);}finally{insideAuth=false;}await sleep(35);return returned;}};
 }
 test('the complete script chain loads, signs in and displays one current version',async t=>{
- const h=await app(t);assert.deepEqual(h.errors,[]);assert.equal(h.w.document.getElementById('appView').classList.contains('hidden'),false);assert.equal(h.w.EJAZATI_APP_VERSION,'1.2.12');assert.equal(h.w.document.querySelector('#changelogV1212Local .sourceBadge').textContent,'الحالي');assert.match(h.w.document.querySelector('.version').textContent,/1\.2\.12/);
+ const h=await app(t);assert.deepEqual(h.errors,[]);assert.equal(h.w.document.getElementById('appView').classList.contains('hidden'),false);assert.equal(h.w.EJAZATI_APP_VERSION,'1.2.13');assert.equal(h.w.document.querySelector('#changelogV1212Local .sourceBadge').textContent,'الحالي');assert.match(h.w.document.querySelector('.version').textContent,/1\.2\.13/);
 });
 test('auth callback releases its lock before loading data and refresh does not overwrite an active form',async t=>{
  const h=await app(t,{loggedIn:false});h.state.session={user:{id:uid}};
@@ -59,7 +59,7 @@ test('failed cloud reads preserve previously loaded leaves and settings',async t
  const h=await app(t);h.run("leaves=[{id:'preserved'}];settings.base_balance=41");h.state.failTable='ejazati_holidays';assert.equal(await h.run('loadData()'),false);assert.equal(h.run('leaves[0].id'),'preserved');assert.equal(h.run('settings.base_balance'),41);assert.match(h.w.document.getElementById('toast').textContent,/آخر بيانات/);
 });
 test('export includes actual custom holidays, overrides and current build',async t=>{
- const h=await app(t);await h.run('exportBackup()');const value=JSON.parse(await h.blobs[0].text());assert.equal(value.app_version,'1.2.12');assert.equal(value.holidays[0].name,'عطلة خاصة');assert.equal(value.holiday_overrides[0].override_name,'موعد معدل');assert.equal(value.holidays.some(x=>x.official),false);
+ const h=await app(t);await h.run('exportBackup()');const value=JSON.parse(await h.blobs[0].text());assert.equal(value.app_version,'1.2.13');assert.equal(value.holidays[0].name,'عطلة خاصة');assert.equal(value.holiday_overrides[0].override_name,'موعد معدل');assert.equal(value.holidays.some(x=>x.official),false);
 });
 test('invalid backups never invoke restore or delete; failed restore reports unchanged data',async t=>{
  const h=await app(t);const before=h.calls.length;const event={target:{files:[{size:100,text:async()=>'{"format":"ejazati-backup-v1"}'}],value:'file'}};
@@ -89,4 +89,15 @@ test('a failed initial read can recover through sign-in without a full reload',a
 });
 test('password recovery is not replaced by the startup screen; successful reset loads the account',async t=>{
  const h=await app(t,{recovery:true});const d=h.w.document;assert.equal(d.getElementById('recoveryForm').classList.contains('hidden'),false);assert.equal(d.getElementById('appView').classList.contains('hidden'),true);d.getElementById('newPassword').value='Example-only-test-value';await h.w.setNewPassword({preventDefault(){}});assert.equal(d.getElementById('appView').classList.contains('hidden'),false);
+});
+
+test('authenticated app entry joins Ejazati before reading its profile, with no target user supplied',async t=>{
+ const h=await app(t);const join=h.calls.findIndex(x=>x.rpc==='ejazati_join_app'),profileRead=h.calls.findIndex(x=>x.table==='ejazati_profiles');
+ assert.ok(join>=0&&join<profileRead);assert.equal(h.calls[join].args,null);assert.deepEqual(h.errors,[]);
+});
+test('failed or disabled membership never loads profile, admin accounts or leave data',async t=>{
+ const h=await app(t,{loggedIn:false});h.state.session={user:{id:uid}};h.state.joinError={code:'42501'};
+ await h.emit('SIGNED_IN');assert.equal(h.calls.some(x=>x.table),false);assert.equal(h.w.document.getElementById('appView').classList.contains('hidden'),true);assert.match(h.w.document.getElementById('authMsg').textContent,/معطّل في إجازاتي/);
+ h.state.joinError={code:'NETWORK'};await h.emit('SIGNED_IN');assert.equal(h.calls.some(x=>x.table),false);assert.match(h.w.document.getElementById('authMsg').textContent,/أعد المحاولة/);
+ h.state.joinError=null;await h.emit('SIGNED_IN');assert.equal(h.w.document.getElementById('appView').classList.contains('hidden'),false);
 });
