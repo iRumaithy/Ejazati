@@ -1,4 +1,4 @@
-const VERSION='1.2.12';
+const VERSION='1.2.13';
 const CACHE='ejazati-v'+VERSION;
 const SHELL=[
  './index.html','./manifest.webmanifest','./ejazati-core.js','./auth-hotfix.js',
