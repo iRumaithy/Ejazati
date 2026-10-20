@@ -1,6 +1,6 @@
 (function(root,factory){const api=factory();if(typeof module==='object'&&module.exports)module.exports=api;else root.EjazatiCore=api;})(globalThis,function(){
   'use strict';
-  const VERSION='1.2.12',DAY=86400000;
+  const VERSION='1.2.13',DAY=86400000;
   const TYPES=new Set(['annual','sick','emergency','unpaid','mission','other']);
   function validDate(value){
     if(typeof value!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(value))return false;
