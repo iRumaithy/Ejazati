@@ -143,6 +143,7 @@
         password,
         options: {
           data: {
+            app: "ejazati",
             display_name: name,
             username
           }
