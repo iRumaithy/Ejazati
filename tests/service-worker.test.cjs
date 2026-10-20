@@ -12,13 +12,13 @@ function worker({network=async()=>new Response('network')}={}){
  return {context,handlers,stores,deleted,pending,event,get skips(){return skips},get claims(){return claims},async install(){handlers.install(event);await Promise.all(pending.splice(0));},async request(path,{mode='cors'}={}){let response;handlers.fetch({request:{method:'GET',url:'https://ejazati.test'+path,mode},waitUntil:event.waitUntil,respondWith(p){response=p}});const result=response?await response:null;await Promise.all(pending.splice(0));return result;}};
 }
 test('the service worker precaches all actual files and offline versioned script requests use their canonical key',async()=>{
- const w=worker({network:async()=>{throw new Error('offline')}});await w.install();const r=await w.request('/ui-v1.2.12.js?v=1.2.12');assert.equal(await r.text(),'cached:./ui-v1.2.12.js');assert.equal(w.skips,0);
+ const w=worker({network:async()=>{throw new Error('offline')}});await w.install();const r=await w.request('/ui-v1.2.12.js?v=1.2.13');assert.equal(await r.text(),'cached:./ui-v1.2.12.js');assert.equal(w.skips,0);
 });
 test('API requests, unknown assets and scripts from another release are never cached',async()=>{
  const w=worker();await w.install();for(const path of ['/api/private','/unknown.json','/ui-v1.2.11.js?v=1.2.11'])assert.equal(await w.request(path),null);
 });
 test('newer navigation HTML cannot corrupt the installed offline shell',async()=>{
- const w=worker({network:async()=>new Response('<meta name="ejazati-version" content="9.0.0">',{headers:{'Content-Type':'text/html'}})});await w.install();await w.request('/',{mode:'navigate'});assert.equal(await w.stores.get('ejazati-v1.2.12').get('https://ejazati.test/index.html').text(),'cached:./index.html');
+ const w=worker({network:async()=>new Response('<meta name="ejazati-version" content="9.0.0">',{headers:{'Content-Type':'text/html'}})});await w.install();await w.request('/',{mode:'navigate'});assert.equal(await w.stores.get('ejazati-v1.2.13').get('https://ejazati.test/index.html').text(),'cached:./index.html');
 });
 test('activation removes only this app old caches and waits for claim; activation remains user initiated',async()=>{
  const w=worker();await w.install();w.stores.set('unrelated-app',new Map());w.stores.set('ejazati-v1.2.11',new Map());w.handlers.activate(w.event);await Promise.all(w.pending.splice(0));assert.deepEqual(w.deleted,['ejazati-v1.2.11']);assert.equal(w.claims,1);assert.equal(w.skips,0);w.handlers.message({data:{type:'SKIP_WAITING'}});assert.equal(w.skips,1);
