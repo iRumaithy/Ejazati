@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="ejazati-version" content="1.2.12">
+<meta name="ejazati-version" content="1.2.13">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0b1630">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -184,7 +184,7 @@ button,input,select,textarea{font:inherit}button{cursor:pointer}.hidden{display:
   </div>
 </div>
 
-<script src="./ejazati-core.js?v=1.2.12"></script>
+<script src="./ejazati-core.js?v=1.2.13"></script>
 <script>
 const APP_VERSION=EjazatiCore.VERSION;
 const SUPABASE_URL="https://itcbahydyqhlybofcyuh.supabase.co";
@@ -216,7 +216,7 @@ function authMessage(t,ok=false){$('authMsg').textContent=t;$('authMsg').classLi
 function showLogin(){$('signupForm').classList.add('hidden');$('recoveryForm').classList.add('hidden');$('loginForm').classList.remove('hidden')}
 function showSignup(){$('loginForm').classList.add('hidden');$('recoveryForm').classList.add('hidden');$('signupForm').classList.remove('hidden')}
 async function signIn(e){e.preventDefault();const {error}=await client.auth.signInWithPassword({email:$('loginEmail').value.trim(),password:$('loginPassword').value});if(error)authMessage(error.message);}
-async function signUp(e){e.preventDefault();const {data,error}=await client.auth.signUp({email:$('signupEmail').value.trim(),password:$('signupPassword').value,options:{data:{display_name:$('signupName').value.trim()}}});if(error)return authMessage(error.message);if(!data.session){authMessage('تم إنشاء الحساب. افتح رسالة التأكيد في بريدك ثم سجّل الدخول.',true);showLogin();}}
+async function signUp(e){e.preventDefault();const {data,error}=await client.auth.signUp({email:$('signupEmail').value.trim(),password:$('signupPassword').value,options:{data:{app:'ejazati',display_name:$('signupName').value.trim()}}});if(error)return authMessage(error.message);if(!data.session){authMessage('تم إنشاء الحساب. افتح رسالة التأكيد في بريدك ثم سجّل الدخول.',true);showLogin();}}
 async function forgotPassword(){const email=$('loginEmail').value.trim()||prompt('اكتب بريدك الإلكتروني');if(!email)return;const {error}=await client.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});authMessage(error?error.message:'أرسلنا رابط إعادة تعيين كلمة المرور إلى بريدك.',!error)}
 async function setNewPassword(e){e.preventDefault();const {error}=await client.auth.updateUser({password:$('newPassword').value});if(error)return authMessage(error.message);recoveryMode=false;toast('تم تغيير كلمة المرور');await enterApp();}
 async function signOut(){await client.auth.signOut();location.reload()}
@@ -237,6 +237,9 @@ function showApp(){$('authView').classList.add('hidden');$('appView').classList.
 async function enterApp(){
  if(!session?.user?.id||recoveryMode)return;
  const uid=session.user.id,epoch=authEpoch;
+ const joined=await client.rpc('ejazati_join_app');
+ if(epoch!==authEpoch||session?.user?.id!==uid)return;
+ if(joined.error||joined.data!==true){showAuth();authMessage(joined.error?.code==='42501'?'هذا الحساب معطّل في إجازاتي. تواصل مع المالك.':'تعذر تحميل عضوية إجازاتي. أعد المحاولة.');return;}
  let p=await client.from('ejazati_profiles').select('*').eq('id',uid).single();
  if(p.error||epoch!==authEpoch||session?.user?.id!==uid){if(p.error)toast('تعذر تحميل الحساب');return}
  profile=p.data;
@@ -404,16 +407,16 @@ document.addEventListener('DOMContentLoaded',async()=>{
 function checkDayRollover(){if(document.hidden||!refreshToday()||!session?.user?.id||!profile||recoveryMode)return;loadData().catch(()=>toast('تعذر تحديث رصيد اليوم؛ تحقق من الاتصال'));}
 setInterval(checkDayRollover,60000);document.addEventListener('visibilitychange',checkDayRollover);window.addEventListener('focus',checkDayRollover);
 </script>
-<script src="./auth-hotfix.js?v=1.2.12"></script>
-<script src="./ui-v1.2.0.js?v=1.2.12"></script>
-<script src="./ui-v1.2.1.js?v=1.2.12"></script>
-<script src="./ui-v1.2.2.js?v=1.2.12"></script>
-<script src="./ui-v1.2.3.js?v=1.2.12"></script>
-<script src="./ui-v1.2.4.js?v=1.2.12"></script>
-<script src="./ui-v1.2.5.js?v=1.2.12"></script>
-<script src="./ui-v1.2.9.js?v=1.2.12"></script>
-<script src="./ui-v1.2.10.js?v=1.2.12"></script>
-<script src="./ui-v1.2.11.js?v=1.2.12"></script>
-<script src="./ui-v1.2.12.js?v=1.2.12"></script>
+<script src="./auth-hotfix.js?v=1.2.13"></script>
+<script src="./ui-v1.2.0.js?v=1.2.13"></script>
+<script src="./ui-v1.2.1.js?v=1.2.13"></script>
+<script src="./ui-v1.2.2.js?v=1.2.13"></script>
+<script src="./ui-v1.2.3.js?v=1.2.13"></script>
+<script src="./ui-v1.2.4.js?v=1.2.13"></script>
+<script src="./ui-v1.2.5.js?v=1.2.13"></script>
+<script src="./ui-v1.2.9.js?v=1.2.13"></script>
+<script src="./ui-v1.2.10.js?v=1.2.13"></script>
+<script src="./ui-v1.2.11.js?v=1.2.13"></script>
+<script src="./ui-v1.2.12.js?v=1.2.13"></script>
 </body>
 </html>
